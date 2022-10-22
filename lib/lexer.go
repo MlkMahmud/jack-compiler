@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"jack-compiler/utils"
@@ -24,30 +23,30 @@ var symbols = utils.Set([]string{
 })
 
 type lexer struct {
-	colNum int
+	colNum  int
 	lineNum int
-	source *os.File
+	source  *os.File
 }
 
 type token struct {
-	colNum int
-	lineNum int
-	tokenType  string
-	value string
+	colNum    int
+	lineNum   int
+	tokenType string
+	value     string
 }
 
 func NewLexer() *lexer {
-	var lx = lexer{ colNum: 0, lineNum: 1 }
-	return &lx
+	return new(lexer)
 }
 
 func (lx *lexer) appendToken(tokens *[]token, entry token) {
-	entry.lineNum = lx.lineNum
 	if len(entry.value) > 1 {
+		// Set the current token's colNum to the position of its first character.
 		entry.colNum = lx.colNum - len(entry.value)
 	} else {
 		entry.colNum = lx.colNum
 	}
+	entry.lineNum = lx.lineNum
 	*tokens = append(*tokens, entry)
 }
 
@@ -76,7 +75,7 @@ func (lx *lexer) read() interface{} {
 
 func (lx *lexer) Tokenize(src string) []token {
 	defer func() {
-		err := lx.source.Close()
+		var err = lx.source.Close()
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -90,6 +89,9 @@ func (lx *lexer) Tokenize(src string) []token {
 	}
 
 	lx.source = file
+	lx.colNum = 0
+	lx.lineNum = 1
+
 	var tokens = make([]token, 0)
 	var char = lx.read()
 
@@ -99,6 +101,7 @@ func (lx *lexer) Tokenize(src string) []token {
 			if nextChar == "/" {
 				// This is a single line comment
 				// Advance until we hit the next newline char or EOF
+
 				var newlineChar = lx.read()
 				for {
 					if newlineChar == "\n" || newlineChar == nil {
@@ -109,14 +112,33 @@ func (lx *lexer) Tokenize(src string) []token {
 				char = newlineChar
 			} else if nextChar == "*" {
 				// This is a multiline comment
-				var asteriskChar = lx.read()
 				// Advance until we hit the "*/" terminator
+
+				/* 
+					Save a reference to the starting column and line number of this comment. 
+					Deduct one from the "colNum" to account for the read operation on "nextChar".
+				*/
+				var startColNum = lx.colNum - 1
+				var startLineNum = lx.lineNum
+
+				var asteriskChar = lx.read()
 				var forwardSlashChar = lx.read()
+
+				// Save all characters until the end of the comment. (Used only for error logging).
+				var chars = []string{"/", "*", asteriskChar.(string)}
 
 				for fmt.Sprintf("%s%s", asteriskChar, forwardSlashChar) != "*/" {
 					if forwardSlashChar == nil {
-						panic(errors.New("SyntaxError: invalid multiline comment"))
+						var message = fmt.Sprintf(
+							"%s:%s:%s\n\n%s\nSyntaxError: invalid or unexpected token",
+							src,
+							fmt.Sprint(startLineNum),
+							fmt.Sprint(startColNum),
+							strings.Join(chars, ""),
+						)
+						panic(message)
 					}
+					chars = append(chars, forwardSlashChar.(string))
 					asteriskChar = forwardSlashChar
 					forwardSlashChar = lx.read()
 				}
@@ -125,50 +147,62 @@ func (lx *lexer) Tokenize(src string) []token {
 				// This is a division symbol
 				lx.appendToken(&tokens, token{
 					tokenType: "symbol",
-					value: "/",
+					value:     "/",
 				})
 				char = nextChar
 			}
 		} else if symbols.Has(char.(string)) {
 			lx.appendToken(&tokens, token{
 				tokenType: "symbol",
-				value: char.(string),
+				value:     char.(string),
 			})
 			char = lx.read()
 		} else if char == `"` {
 			char = lx.read()
 			var chars = []string{}
 
+			var startColNum = lx.colNum
+			var startLineNum = lx.lineNum
+
 			for {
-				if char == `"` || char == nil {
+				if char == "\n" || char == "nil" {
+					var errMessage = fmt.Sprintf(
+						"%s:%s:%s\n\n%s\n\nSyntaxError: invalid or unexpected token",
+						src,
+						fmt.Sprint(startLineNum),
+						fmt.Sprint(startColNum),
+						fmt.Sprintf(`"%s`, strings.Join(chars, "")),
+					)
+					panic(errMessage)
+				}
+
+				if char == `"` {
 					break
 				}
+
 				chars = append(chars, char.(string))
 				char = lx.read()
 			}
-			var word = strings.Join(chars, "")
 
-			if len(word) > 0 {
-				lx.appendToken(&tokens, token{
-					tokenType: "string",
-					value: word,
-				})
-			}
+			var word = strings.Join(chars, "")
 	
-			if char == `"` {
-				char = lx.read()
-			}
+			lx.appendToken(&tokens, token{
+				tokenType: "string",
+				value:     fmt.Sprintf(`"%s"`, word),
+			})
+
+			char = lx.read()
 		} else if regexp.MustCompile(`(?i)[_a-z]`).MatchString(char.(string)) {
 			var chars = []string{char.(string)}
-			char = lx.read().(string)
+			char = lx.read()
 
 			for regexp.MustCompile(`\w`).MatchString(char.(string)) {
 				chars = append(chars, char.(string))
-				char = lx.read().(string)
+				char = lx.read()
 			}
 
 			var word = strings.Join(chars, "")
-			var token = token{ value: word }
+			var token = token{value: word}
 			if keywords.Has(word) {
 				token.tokenType = "keyword"
 			} else {
@@ -185,7 +219,7 @@ func (lx *lexer) Tokenize(src string) []token {
 			var word = strings.Join(chars, "")
 			lx.appendToken(&tokens, token{
 				tokenType: "integer",
-				value: word,
+				value:     word,
 			})
 		} else {
 			char = lx.read()

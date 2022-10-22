@@ -1,14 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"jack-compiler/lib"
+	"log"
 	"os"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		panic("Add useful message: ")
+		log.Fatal(
+			errors.New("usage: go run main.go [ src ]\n src: a .jack file or a directory with 1 or more .jack files"),
+		)
 	}
 
 	var src = os.Args[1]
