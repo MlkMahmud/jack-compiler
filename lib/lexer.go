@@ -23,41 +23,60 @@ var symbols = utils.Set([]string{
 	",", ".", "=", ";", "&", "|", "<", ">", "~",
 })
 
-type Lexer struct {
+type lexer struct {
+	colNum int
+	lineNum int
 	source *os.File
 }
 
-type Token struct {
-	Type  string
-	Value string
+type token struct {
+	colNum int
+	lineNum int
+	tokenType  string
+	value string
 }
 
-func NewLexer() *Lexer {
-	return new(Lexer)
+func NewLexer() *lexer {
+	var lx = lexer{ colNum: 0, lineNum: 1 }
+	return &lx
 }
 
+func (lx *lexer) appendToken(tokens *[]token, entry token) {
+	entry.lineNum = lx.lineNum
+	if len(entry.value) > 1 {
+		entry.colNum = lx.colNum - len(entry.value)
+	} else {
+		entry.colNum = lx.colNum
+	}
+	*tokens = append(*tokens, entry)
+}
 
-/*
-This method returns a single byte (as a string char) from the Lexer's source file.
-If the source file is at EOF it returns nil
-*/
-func (lexer *Lexer) Read() interface{} {
+func (lx *lexer) read() interface{} {
 	var buffer = make([]byte, 1)
-	var bytes, err = lexer.source.Read(buffer)
+	var bytes, err = lx.source.Read(buffer)
 
 	if err != nil {
 		if err == io.EOF {
 			return nil
 		}
-		log.Fatal(err)
-		os.Exit(1)
+		panic(err)
 	}
-	return string(buffer[:bytes])
+
+	var char = string(buffer[:bytes])
+
+	if char == "\n" {
+		lx.colNum = 0
+		lx.lineNum++
+	} else {
+		lx.colNum++
+	}
+
+	return char
 }
 
-func (lexer *Lexer) Tokenize(src string) []Token {
+func (lx *lexer) Tokenize(src string) []token {
 	defer func() {
-		err := lexer.source.Close()
+		err := lx.source.Close()
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -70,47 +89,54 @@ func (lexer *Lexer) Tokenize(src string) []Token {
 		os.Exit(1)
 	}
 
-	lexer.source = file
-	var tokens = make([]Token, 0)
-	var char = lexer.Read()
+	lx.source = file
+	var tokens = make([]token, 0)
+	var char = lx.read()
 
 	for char != nil {
 		if char == "/" {
-			var nextChar = lexer.Read()
+			var nextChar = lx.read()
 			if nextChar == "/" {
 				// This is a single line comment
 				// Advance until we hit the next newline char or EOF
-				var newlineChar = lexer.Read()
+				var newlineChar = lx.read()
 				for {
 					if newlineChar == "\n" || newlineChar == nil {
 						break
 					}
-					newlineChar = lexer.Read()
+					newlineChar = lx.read()
 				}
+				char = newlineChar
 			} else if nextChar == "*" {
 				// This is a multiline comment
+				var asteriskChar = lx.read()
 				// Advance until we hit the "*/" terminator
-				var asteriskChar = lexer.Read()
-				var forwardSlashChar = lexer.Read()
+				var forwardSlashChar = lx.read()
 
 				for fmt.Sprintf("%s%s", asteriskChar, forwardSlashChar) != "*/" {
 					if forwardSlashChar == nil {
-						log.Fatal(errors.New("SyntaxError: invalid multiline comment"))
-						os.Exit(1)
+						panic(errors.New("SyntaxError: invalid multiline comment"))
 					}
 					asteriskChar = forwardSlashChar
-					forwardSlashChar = lexer.Read()
+					forwardSlashChar = lx.read()
 				}
+				char = lx.read()
 			} else {
 				// This is a division symbol
-				tokens = append(tokens, Token{Type: "symbol", Value: "/"})
+				lx.appendToken(&tokens, token{
+					tokenType: "symbol",
+					value: "/",
+				})
 				char = nextChar
 			}
 		} else if symbols.Has(char.(string)) {
-			tokens = append(tokens, Token{Type: "symbol", Value: char.(string)})
-			char = lexer.Read()
+			lx.appendToken(&tokens, token{
+				tokenType: "symbol",
+				value: char.(string),
+			})
+			char = lx.read()
 		} else if char == `"` {
-			char = lexer.Read()
+			char = lx.read()
 			var chars = []string{}
 
 			for {
@@ -118,43 +144,51 @@ func (lexer *Lexer) Tokenize(src string) []Token {
 					break
 				}
 				chars = append(chars, char.(string))
-				char = lexer.Read()
+				char = lx.read()
 			}
 			var word = strings.Join(chars, "")
 
 			if len(word) > 0 {
-				tokens = append(tokens, Token{Type: "String", Value: word})
+				lx.appendToken(&tokens, token{
+					tokenType: "string",
+					value: word,
+				})
 			}
 	
 			if char == `"` {
-				char = lexer.Read()
+				char = lx.read()
 			}
 		} else if regexp.MustCompile(`(?i)[_a-z]`).MatchString(char.(string)) {
 			var chars = []string{char.(string)}
-			char = lexer.Read().(string)
+			char = lx.read().(string)
 
 			for regexp.MustCompile(`\w`).MatchString(char.(string)) {
 				chars = append(chars, char.(string))
-				char = lexer.Read().(string)
+				char = lx.read().(string)
 			}
 
 			var word = strings.Join(chars, "")
+			var token = token{ value: word }
 			if keywords.Has(word) {
-				tokens = append(tokens, Token{Type: "Keyword", Value: word})
+				token.tokenType = "keyword"
 			} else {
-				tokens = append(tokens, Token{Type: "Identifier", Value: word})
+				token.tokenType = "identifier"
 			}
+			lx.appendToken(&tokens, token)
 		} else if regexp.MustCompile(`\d`).MatchString(char.(string)) {
 			var chars = []string{char.(string)}
-			char = lexer.Read()
+			char = lx.read()
 			for regexp.MustCompile(`\d`).MatchString(char.(string)) {
 				chars = append(chars, char.(string))
-				char = lexer.Read()
+				char = lx.read()
 			}
 			var word = strings.Join(chars, "")
-			tokens = append(tokens, Token{Type: "Integer", Value: word})
+			lx.appendToken(&tokens, token{
+				tokenType: "integer",
+				value: word,
+			})
 		} else {
-			char = lexer.Read()
+			char = lx.read()
 		}
 	}
 	return tokens
