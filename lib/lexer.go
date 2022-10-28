@@ -80,14 +80,12 @@ func (lx *lexer) Tokenize(src string) []token {
 		var err = lx.source.Close()
 		if err != nil {
 			log.Fatal(err)
-			os.Exit(1)
 		}
 	}()
 
 	var file, err = os.Open(src)
 	if err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 
 	lx.source = file
@@ -168,7 +166,7 @@ func (lx *lexer) Tokenize(src string) []token {
 			var startLineNum = lx.lineNum
 
 			for {
-				if char == "\n" || char == "nil" {
+				if char == "\n" || char == nil {
 					var errMessage = fmt.Sprintf(
 						"%s:%s:%s\n\n%s\n\nSyntaxError: invalid or unexpected token",
 						src,
