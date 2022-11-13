@@ -10,15 +10,17 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal(
-			errors.New("usage: go run main.go [ src ]\n src: a .jack file or a directory with 1 or more .jack files"),
+		log.SetFlags(0)
+		log.Fatalln(
+			errors.New("usage:\n go run main.go\t\t\t\tCompiles all the .jack files in the current directory\n go run main.go <src.jack>\t\tCompiles the specified .jack file\n go run main.go src/\t\t\tCompiles all the .jack files in the specified directory"),
 		)
 	}
 
 	var src = os.Args[1]
 	var Lexer = lib.NewLexer()
 	var tokens = Lexer.Tokenize(src)
-	for i := 0; i < len(tokens); i++ {
-		fmt.Printf("%+v\n", tokens[i])
+	for tokens.Size() > 0 {
+		var token = tokens.Dequeue()
+		fmt.Printf("%+v\n", token)
 	}
 }
