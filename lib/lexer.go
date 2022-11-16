@@ -1,13 +1,13 @@
 package lib
 
 import (
+	"container/list"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"regexp"
 	"strings"
-	"jack-compiler/util"
 )
 
 var IDENTIFIER = "IDENTIFIER"
@@ -32,7 +32,7 @@ type Lexer struct {
 	colNum  int
 	lineNum int
 	source  *os.File
-	tokens 	*util.Queue
+	tokens 	*list.List
 }
 
 type Token struct {
@@ -54,7 +54,7 @@ func (lexer *Lexer) appendToken(entry Token) {
 		entry.colNum = lexer.colNum
 	}
 	entry.lineNum = lexer.lineNum
-	lexer.tokens.Enqueue(entry)
+	lexer.tokens.PushBack(entry)
 }
 
 func (lexer *Lexer) read() interface{} {
@@ -80,7 +80,7 @@ func (lexer *Lexer) read() interface{} {
 	return char
 }
 
-func (lexer *Lexer) Tokenize(src string) util.Queue {
+func (lexer *Lexer) Tokenize(src string) list.List {
 	defer func() {
 		var err = lexer.source.Close()
 		if err != nil {
@@ -96,7 +96,7 @@ func (lexer *Lexer) Tokenize(src string) util.Queue {
 	lexer.colNum = 0
 	lexer.lineNum = 1
 	lexer.source = file
-	lexer.tokens = util.NewQueue()
+	lexer.tokens = list.New()
 
 	var char = lexer.read()
 

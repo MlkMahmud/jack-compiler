@@ -19,8 +19,10 @@ func main() {
 	var src = os.Args[1]
 	var Lexer = lib.NewLexer()
 	var tokens = Lexer.Tokenize(src)
-	for tokens.Size() > 0 {
-		var token = tokens.Dequeue()
+	var current = tokens.Front()
+	for current != nil {
+		var token = current.Value
+		current = current.Next()
 		fmt.Printf("%+v\n", token)
 	}
 }

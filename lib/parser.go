@@ -1,22 +1,22 @@
 package lib
 
 import (
+	"container/list"
 	"fmt"
-	"jack-compiler/util"
 	"log"
 	"os"
 	"strings"
 )
 
-// /*
-// 	The Jack parser receives an array of tokens.
-// 	It attemps to parse the tokens and generate a
-// 	parse tree according to the rules of Jack's grammar.
-// */
+/*
+	The Jack parser receives an array of tokens.
+	It attemps to parse the tokens and generate a
+	parse tree according to the rules of Jack's grammar.
+*/
 
 type Parser struct {
 	outFile *os.File
-	tokens  util.Queue
+	tokens  list.List
 }
 
 func NewParser() *Parser {
@@ -24,11 +24,14 @@ func NewParser() *Parser {
 }
 
 func (parser *Parser) getNextToken() Token {
-	return parser.tokens.Dequeue().(Token)
+	var item = parser.tokens.Front()
+	parser.tokens.Remove(item)
+	return item.Value.(Token)
 }
 
 func (parser *Parser) peekNextToken() Token {
-	return parser.tokens.Peek().(Token)
+	var item = parser.tokens.Front()
+	return item.Value.(Token)
 }
 
 func (parser *Parser) write(bytes string) {
@@ -152,11 +155,11 @@ func (parser *Parser) parseClassVarDec() {
 
 		parser.write(
 			fmt.Sprintf(
-			`
+				`
 				<symbol>,</symbol>
 				<identifier>%s</identifier>
 			`,
-			varName.lexeme,
+				varName.lexeme,
 			),
 		)
 
@@ -165,11 +168,11 @@ func (parser *Parser) parseClassVarDec() {
 
 	parser.write("</classVarDec>")
 	// discard final ";" token.
-	parser.tokens.Dequeue()
+	parser.getNextToken()
 }
 
-func (parser *Parser) Parse(tokens util.Queue, outFile string) {
-	if tokens.Size() < 4 {
+func (parser *Parser) Parse(tokens list.List, outFile string) {
+	if tokens.Len() < 4 {
 		//	The minimum number of tokens for a valid Jack program is 4. "class className {}"
 		var srcFile = strings.Replace(outFile, ".xml", ".jack", -1)
 		log.Fatalf(fmt.Sprintf("File: %s is not a valid Jack program", srcFile))
@@ -191,7 +194,7 @@ func (parser *Parser) Parse(tokens util.Queue, outFile string) {
 	parser.outFile = file
 	parser.tokens = tokens
 
-	for tokens.Size() > 0 {
+	for tokens.Len() > 0 {
 		var nextToken = parser.peekNextToken()
 
 		switch nextToken.lexeme {
@@ -203,7 +206,7 @@ func (parser *Parser) Parse(tokens util.Queue, outFile string) {
 			parser.parseSubroutineDec()
 		case "}":
 			parser.write("</class>")
-			parser.tokens.Dequeue()
+			parser.getNextToken()
 		}
 	}
 }
