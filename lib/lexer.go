@@ -27,12 +27,11 @@ var SYMBOLS = map[string]string{
 	"&": "AND", "|": "OR", "<": "LESS", ">": "GREATER", "~": "TILDE",
 }
 
-
 type Lexer struct {
 	colNum  int
 	lineNum int
 	source  *os.File
-	tokens 	*list.List
+	tokens  *list.List
 }
 
 type Token struct {
@@ -58,8 +57,8 @@ func (lexer *Lexer) appendToken(entry Token) {
 }
 
 func (lexer *Lexer) read() interface{} {
-	var buffer = make([]byte, 1)
-	var bytes, err = lexer.source.Read(buffer)
+	buffer := make([]byte, 1)
+	bytes, err := lexer.source.Read(buffer)
 
 	if err != nil {
 		if err == io.EOF {
@@ -68,7 +67,7 @@ func (lexer *Lexer) read() interface{} {
 		panic(err)
 	}
 
-	var char = string(buffer[:bytes])
+	char := string(buffer[:bytes])
 
 	if char == "\n" {
 		lexer.colNum = 0
@@ -80,15 +79,15 @@ func (lexer *Lexer) read() interface{} {
 	return char
 }
 
-func (lexer *Lexer) Tokenize(src string) list.List {
+func (lexer *Lexer) Tokenize(src string) *list.List {
 	defer func() {
-		var err = lexer.source.Close()
+		err := lexer.source.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	var file, err = os.Open(src)
+	file, err := os.Open(src)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,15 +97,15 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 	lexer.source = file
 	lexer.tokens = list.New()
 
-	var char = lexer.read()
+	char := lexer.read()
 
 	for char != nil {
 		if char == "/" {
-			var nextChar = lexer.read()
+			nextChar := lexer.read()
 			if nextChar == "/" {
 				// This is a single line comment
 				// Advance until we hit the next newline char or EOF
-				var newlineChar = lexer.read()
+				newlineChar := lexer.read()
 
 				for {
 					if newlineChar == "\n" || newlineChar == nil {
@@ -121,21 +120,21 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 				// Advance until we hit the "*/" terminator
 
 				/*
-				  Save a reference to the starting column and line number of this comment.
-					Deduct one from the "colNum" to account for the read operation on "nextChar".
+					  Save a reference to the starting column and line number of this comment.
+						Deduct one from the "colNum" to account for the read operation on "nextChar".
 				*/
-				var startColNum = lexer.colNum - 1
-				var startLineNum = lexer.lineNum
+				startColNum := lexer.colNum - 1
+				startLineNum := lexer.lineNum
 
-				var asteriskChar = lexer.read()
-				var forwardSlashChar = lexer.read()
+				asteriskChar := lexer.read()
+				forwardSlashChar := lexer.read()
 
 				// Save all characters until the end of the comment. (Used only for error logging).
-				var chars = []string{"/", "*", asteriskChar.(string)}
+				chars := []string{"/", "*", asteriskChar.(string)}
 
 				for fmt.Sprintf("%s%s", asteriskChar, forwardSlashChar) != "*/" {
 					if forwardSlashChar == nil {
-						var message = fmt.Sprintf(
+						message := fmt.Sprintf(
 							"%s:%s:%s\n\n%s\nSyntaxError: invalid or unexpected token",
 							src,
 							fmt.Sprint(startLineNum),
@@ -165,14 +164,14 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 			char = lexer.read()
 		} else if char == `"` {
 			char = lexer.read()
-			var chars = []string{}
+			chars := []string{}
 
-			var startColNum = lexer.colNum
-			var startLineNum = lexer.lineNum
+			startColNum := lexer.colNum
+			startLineNum := lexer.lineNum
 
 			for {
 				if char == "\n" || char == nil {
-					var errMessage = fmt.Sprintf(
+					errMessage := fmt.Sprintf(
 						"%s:%s:%s\n\n%s\n\nSyntaxError: invalid or unexpected token",
 						src,
 						fmt.Sprint(startLineNum),
@@ -190,7 +189,7 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 				char = lexer.read()
 			}
 
-			var word = strings.Join(chars, "")
+			word := strings.Join(chars, "")
 
 			lexer.appendToken(Token{
 				tokenType: "STRING",
@@ -199,7 +198,7 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 
 			char = lexer.read()
 		} else if regexp.MustCompile(`(?i)[_a-z]`).MatchString(char.(string)) {
-			var chars = []string{char.(string)}
+			chars := []string{char.(string)}
 			char = lexer.read()
 
 			for regexp.MustCompile(`\w`).MatchString(char.(string)) {
@@ -207,8 +206,8 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 				char = lexer.read()
 			}
 
-			var word = strings.Join(chars, "")
-			var token = Token{lexeme: word}
+			word := strings.Join(chars, "")
+			token := Token{lexeme: word}
 			if KEYWORDS[word] != "" {
 				token.tokenType = KEYWORDS[word]
 			} else {
@@ -216,13 +215,13 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 			}
 			lexer.appendToken(token)
 		} else if regexp.MustCompile(`\d`).MatchString(char.(string)) {
-			var chars = []string{char.(string)}
+			chars := []string{char.(string)}
 			char = lexer.read()
 			for regexp.MustCompile(`\d`).MatchString(char.(string)) {
 				chars = append(chars, char.(string))
 				char = lexer.read()
 			}
-			var word = strings.Join(chars, "")
+			word := strings.Join(chars, "")
 			lexer.appendToken(Token{
 				tokenType: "NUMBER",
 				lexeme:    word,
@@ -231,5 +230,5 @@ func (lexer *Lexer) Tokenize(src string) list.List {
 			char = lexer.read()
 		}
 	}
-	return *lexer.tokens
+	return lexer.tokens
 }

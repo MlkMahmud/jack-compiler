@@ -16,7 +16,7 @@ import (
 
 type Parser struct {
 	outFile *os.File
-	tokens  list.List
+	tokens  *list.List
 }
 
 func NewParser() *Parser {
@@ -24,79 +24,29 @@ func NewParser() *Parser {
 }
 
 func (parser *Parser) getNextToken() Token {
-	var item = parser.tokens.Front()
+	item := parser.tokens.Front()
 	parser.tokens.Remove(item)
 	return item.Value.(Token)
 }
 
 func (parser *Parser) peekNextToken() Token {
-	var item = parser.tokens.Front()
+	item := parser.tokens.Front()
 	return item.Value.(Token)
 }
 
-func (parser *Parser) write(bytes string) {
-	var _, err = parser.outFile.Write([]byte(bytes))
+func (parser *Parser) write(str string) {
+	_, err := parser.outFile.WriteString(str)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (parser *Parser) parseClassDec() {
-	var classKeyword = parser.getNextToken()
-	var className = parser.getNextToken()
-	var leftBrace = parser.getNextToken()
-
-	if classKeyword.lexeme != "class" {
-		panic("class declaration must begin with the 'class' keyword")
-	}
-
-	if className.tokenType != IDENTIFIER {
-		panic("class name must be a valid identifier")
-	}
-
-	if leftBrace.lexeme != "{" {
-		panic("class name must be followed by an opening brace '{' character")
-	}
-
-	parser.write(fmt.Sprintf(
-		`
-		<class>
-		<keyword>class</keyword>
-		<identifier>%s</identifier>
-		<symbol> { </symbol>
-		`,
-		classKeyword.lexeme,
-	))
-
-	var nextToken = parser.peekNextToken()
-
-	if nextToken.lexeme == "}" {
-		// This is a class with an empty body.
-		parser.write(("</class>"))
-		// Discard the token
-		parser.getNextToken()
-		return
-	}
-
-	/*
-		If the class body is not empty, the next token must be a class var declaration
-		or a subroutine declaration.
-	*/
-	for _, val := range []string{"constructor", "field", "function", "method", "static"} {
-		if val == nextToken.lexeme {
-			return
-		}
-	}
-
-	panic(fmt.Sprintf("invalid token %s", nextToken.lexeme))
-}
-
-func (parser *Parser) parseSubroutineDec() {}
+// func (parser *Parser) parseSubroutineDec() {}
 
 func (parser *Parser) parseClassVarDec() {
-	var varType = parser.getNextToken()
-	var dataType = parser.getNextToken()
-	var varName = parser.getNextToken()
+	varType := parser.getNextToken()
+	dataType := parser.getNextToken()
+	varName := parser.getNextToken()
 
 	if varType.lexeme != "field" && varType.lexeme != "static" {
 		panic(
@@ -108,9 +58,9 @@ func (parser *Parser) parseClassVarDec() {
 	}
 
 	if dataType.tokenType != IDENTIFIER &&
-		dataType.tokenType != KEYWORDS["boolean"] &&
-		dataType.tokenType != KEYWORDS["char"] &&
-		dataType.tokenType != KEYWORDS["int"] {
+		dataType.lexeme != "boolean" &&
+		dataType.lexeme != "char" &&
+		dataType.lexeme != "int" {
 		panic(
 			fmt.Sprintf(
 				"invalid variable dataType: %s",
@@ -130,24 +80,22 @@ func (parser *Parser) parseClassVarDec() {
 
 	parser.write(
 		fmt.Sprintf(
-			`
-			<classVarDec>
-			<keyword>%s</keyword>
-			<keyword>%s</keyword>
-			<identifier>%s</identifier>
-			`,
+			"\t<classVarDec>\n"+
+				"\t\t<keyword>%s</keyword>\n"+
+				"\t\t<keyword>%s</keyword>\n"+
+				"\t\t<identifier>%s</identifier>\n",
 			varType.lexeme,
 			dataType.lexeme,
 			varName.lexeme,
 		),
 	)
 
-	var nextToken = parser.peekNextToken()
+	nextToken := parser.peekNextToken()
 
 	for nextToken.lexeme != ";" {
 		// Check if it's a multi var declaration.
-		var commaSymbol = parser.getNextToken()
-		var varName = parser.getNextToken()
+		commaSymbol := parser.getNextToken()
+		varName := parser.getNextToken()
 
 		if commaSymbol.lexeme != "," && varName.tokenType != IDENTIFIER {
 			panic("invalid class variable declaration.")
@@ -155,10 +103,8 @@ func (parser *Parser) parseClassVarDec() {
 
 		parser.write(
 			fmt.Sprintf(
-				`
-				<symbol>,</symbol>
-				<identifier>%s</identifier>
-			`,
+				"\t\t<symbol>,</symbol>\n"+
+					"\t\t<identifier>%s</identifier>\n",
 				varName.lexeme,
 			),
 		)
@@ -166,26 +112,28 @@ func (parser *Parser) parseClassVarDec() {
 		nextToken = parser.peekNextToken()
 	}
 
-	parser.write("</classVarDec>")
+	parser.write(
+		"\t\t<symbol>;</symbol>\n" +
+			"\t</classVarDec>\n",
+	)
 	// discard final ";" token.
 	parser.getNextToken()
 }
 
-func (parser *Parser) Parse(tokens list.List, outFile string) {
+func (parser *Parser) Parse(tokens *list.List, outFile string) {
 	if tokens.Len() < 4 {
 		//	The minimum number of tokens for a valid Jack program is 4. "class className {}"
-		var srcFile = strings.Replace(outFile, ".xml", ".jack", -1)
+		srcFile := strings.Replace(outFile, ".xml", ".jack", -1)
 		log.Fatalf(fmt.Sprintf("File: %s is not a valid Jack program", srcFile))
 	}
 
-	var file, err = os.Create(outFile)
-
+	file, err := os.Create(outFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer func() {
-		var err = file.Close()
+		err := file.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -194,19 +142,51 @@ func (parser *Parser) Parse(tokens list.List, outFile string) {
 	parser.outFile = file
 	parser.tokens = tokens
 
-	for tokens.Len() > 0 {
-		var nextToken = parser.peekNextToken()
+	classKeyword := parser.getNextToken()
+	className := parser.getNextToken()
+	leftBrace := parser.getNextToken()
 
+	if classKeyword.lexeme != "class" {
+		panic("All Jack programs must begin with a class declaration")
+	}
+
+	if className.tokenType != IDENTIFIER {
+		panic("class name must be a valid identifier")
+	}
+
+	if leftBrace.lexeme != "{" {
+		panic("class name must be followed by an opening brace '{' character")
+	}
+
+	parser.write(fmt.Sprintf(
+		"<class>\n"+
+			"\t<keyword>class</keyword>\n"+
+			"\t<identifier>%s</identifier>\n"+
+			"\t<symbol> { </symbol>\n",
+		className.lexeme,
+	))
+
+	nextToken := parser.peekNextToken()
+
+	for parser.tokens.Len() > 0 {
 		switch nextToken.lexeme {
-		case "class":
-			parser.parseClassDec()
 		case "field", "static":
 			parser.parseClassVarDec()
-		case "constructor", "function", "method":
-			parser.parseSubroutineDec()
+			nextToken = parser.peekNextToken()
 		case "}":
-			parser.write("</class>")
+			// Signifies the end of the jack program, so it must be the last token in the list.
+			if parser.tokens.Len() > 1 {
+				panic("error: invalid Jack program.")
+			}
+			parser.write(
+				"\t<symbol>}</symbol>\n" +
+					"</class>\n",
+			)
+			// Discard the token
 			parser.getNextToken()
+
+		default:
+			panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
 		}
 	}
 }

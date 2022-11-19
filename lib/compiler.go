@@ -1,6 +1,8 @@
 package lib
 
-import "strings"
+import (
+	"strings"
+)
 
 type Compiler struct {
 	lexer *Lexer
@@ -17,6 +19,5 @@ func NewCompiler() *Compiler {
 func (compiler *Compiler) Compile(src string) {
 	var outFile = strings.Replace(src, ".jack", ".xml", -1)
 	var tokens = compiler.lexer.Tokenize(src)
-
 	compiler.parser.Parse(tokens, outFile)
 }
