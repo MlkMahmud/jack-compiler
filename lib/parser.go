@@ -23,6 +23,16 @@ func NewParser() *Parser {
 	return new(Parser)
 }
 
+func isValidType(token Token) bool {
+	if token.tokenType != IDENTIFIER &&
+		token.lexeme != "boolean" &&
+		token.lexeme != "char" &&
+		token.lexeme != "int" {
+		return false
+	}
+	return true
+}
+
 func (parser *Parser) getNextToken() Token {
 	item := parser.tokens.Front()
 	parser.tokens.Remove(item)
@@ -41,7 +51,107 @@ func (parser *Parser) write(str string) {
 	}
 }
 
-// func (parser *Parser) parseSubroutineDec() {}
+func (parser *Parser) parseParameterList() {
+	argType := parser.getNextToken()
+	argName := parser.getNextToken()
+
+	if !isValidType(argType) {
+		panic(fmt.Sprintf("error: invalid token: %s", argType.lexeme))
+	}
+
+	if argName.tokenType != IDENTIFIER {
+		panic(fmt.Sprintf("error: invalid token: %s", argName.lexeme))
+	}
+
+	parser.write(fmt.Sprintf(
+		"\t\t<parameterList>\n"+
+			"\t\t\t<%s>%s</%s>\n"+
+			"\t\t\t<identifier>%s</identifier>\n",
+		argType.tokenType,
+		argType.lexeme,
+		argType.tokenType,
+		argName.lexeme,
+	))
+
+	nextToken := parser.peekNextToken()
+
+	for nextToken.lexeme != ")" {
+		commaLiteral := parser.getNextToken()
+		nextArgType := parser.getNextToken()
+		nextArgName := parser.getNextToken()
+
+		if commaLiteral.lexeme != "," {
+			panic(fmt.Sprintf("error: invalid token: %s", commaLiteral.lexeme))
+		}
+
+		if !isValidType(nextArgType) {
+			panic(fmt.Sprintf("error: invalid token: %s", argName.lexeme))
+		}
+
+		if nextArgName.tokenType != IDENTIFIER {
+			panic(fmt.Sprintf("error: invalid token: %s", nextArgName.lexeme))
+		}
+
+		parser.write(fmt.Sprintf(
+			"\t\t\t<symbol>,</symbol>\n"+
+				"\t\t\t<%s>%s</%s>\n"+
+				"\t\t\t<identifier>%s</identifier>\n",
+			nextArgType.tokenType,
+			nextArgType.lexeme,
+			nextArgType.tokenType,
+			nextArgName.lexeme,
+		))
+		nextToken = parser.peekNextToken()
+	}
+
+	parser.write("\t\t</parameterList>\n")
+	// discard closing brace ")" token.
+	parser.getNextToken()
+}
+
+func (parser *Parser) parseSubroutineDec() {
+	subroutineType := parser.getNextToken()
+	subroutineReturnType := parser.getNextToken()
+	subroutineName := parser.getNextToken()
+	leftBrace := parser.getNextToken()
+
+	if subroutineType.lexeme != "constructor" &&
+		subroutineType.lexeme != "function" &&
+		subroutineType.lexeme != "method" {
+		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
+	}
+
+	if !isValidType(subroutineReturnType) && subroutineReturnType.lexeme != "void" {
+		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
+	}
+
+	if subroutineName.tokenType != IDENTIFIER {
+		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
+	}
+
+	if leftBrace.lexeme != "(" {
+		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
+	}
+
+	parser.write(fmt.Sprintf(
+		"\t<subroutineDec>\n"+
+			"\t\t<keyword>%s</keyword>\n"+
+			"\t\t<%s>%s</%s>\n"+
+			"\t\t<identifier>%s</identifier>\n"+
+			"\t\t<symbol>(</symbol>\n",
+		subroutineType.lexeme,
+		subroutineReturnType.tokenType,
+		subroutineReturnType.lexeme,
+		subroutineReturnType.tokenType,
+		subroutineName.lexeme,
+	))
+
+	parser.parseParameterList()
+
+	parser.write("\t</subroutineDec>\n")
+	parser.getNextToken()
+	parser.getNextToken()
+}
 
 func (parser *Parser) parseClassVarDec() {
 	varType := parser.getNextToken()
@@ -57,10 +167,7 @@ func (parser *Parser) parseClassVarDec() {
 		)
 	}
 
-	if dataType.tokenType != IDENTIFIER &&
-		dataType.lexeme != "boolean" &&
-		dataType.lexeme != "char" &&
-		dataType.lexeme != "int" {
+	if !isValidType(dataType) {
 		panic(
 			fmt.Sprintf(
 				"invalid variable dataType: %s",
@@ -172,6 +279,9 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 		switch nextToken.lexeme {
 		case "field", "static":
 			parser.parseClassVarDec()
+			nextToken = parser.peekNextToken()
+		case "constructor", "function", "method":
+			parser.parseSubroutineDec()
 			nextToken = parser.peekNextToken()
 		case "}":
 			// Signifies the end of the jack program, so it must be the last token in the list.

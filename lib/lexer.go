@@ -10,21 +10,21 @@ import (
 	"strings"
 )
 
-var IDENTIFIER = "IDENTIFIER"
+var IDENTIFIER = "identifier"
 
-var KEYWORDS = map[string]string{
-	"class": "KEYWORD_CLASS", "constructor": "KEYWORD_CONSTRUCTOR", "method": "KEYWORD_METHOD",
-	"function": "KEYWORD_FUNCTION", "int": "KEYWORD_INT", "boolean": "KEYWORD_BOOLEAN",
-	"char": "KEYWORD_CHAR", "void": "KEYWORD_VOID", "var": "KEYWORD_VAR", "static": "KEYWORD_STATIC",
-	"field": "KEYWORD_FIELD", "let": "KEYWORD_LET", "do": "KEYWORD_DO", "if": "KEYWORD_IF",
-	"else": "KEYWORD_ELSE", "while": "KEYWORD_WHILE", "return": "KEYWORD_RETURN", "true": "KEYWORD_TRUE",
-	"false": "KEYWORD_FALSE", "null": "KEYWORD_NULL", "this": "KEYWORD_THIS",
+var KEYWORDS = map[string]bool{
+	"class": true, "constructor": true, "method": true,
+	"function": true, "int": true, "boolean": true,
+	"char": true, "void": true, "var": true, "static": true,
+	"field": true, "let": true, "do": true, "if": true,
+	"else": true, "while": true, "return": true, "true": true,
+	"false": true, "null": true, "this": true,
 }
 
-var SYMBOLS = map[string]string{
-	"(": "LPAREN", ")": "RPAREN", "{": "LBRACE", "}": "RBRACE", "[": "LBRACKET", "]": "RBRACKET", "/": "DIV",
-	"-": "MINUS", "+": "PLUS", "*": "MUL", ",": "COMMA", ".": "PERIOD", "=": "EQUALS", ";": "SEMICOLON",
-	"&": "AND", "|": "OR", "<": "LESS", ">": "GREATER", "~": "TILDE",
+var SYMBOLS = map[string]bool{
+	"(": true, ")": true, "{": true, "}": true, "[": true, "]": true, "/": true,
+	"-": true, "+": true, "*": true, ",": true, ".": true, "=": true, ";": true,
+	"&": true, "|": true, "<": true, ">": true, "~": true,
 }
 
 type Lexer struct {
@@ -151,14 +151,14 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			} else {
 				// This is a division symbol
 				lexer.appendToken(Token{
-					tokenType: SYMBOLS["/"],
+					tokenType: "symbol",
 					lexeme:    "/",
 				})
 				char = nextChar
 			}
-		} else if SYMBOLS[char.(string)] != "" {
+		} else if SYMBOLS[char.(string)] {
 			lexer.appendToken(Token{
-				tokenType: SYMBOLS[char.(string)],
+				tokenType: "symbol",
 				lexeme:    char.(string),
 			})
 			char = lexer.read()
@@ -192,7 +192,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			word := strings.Join(chars, "")
 
 			lexer.appendToken(Token{
-				tokenType: "STRING",
+				tokenType: "stringConstant",
 				lexeme:    fmt.Sprintf(`"%s"`, word),
 			})
 
@@ -208,8 +208,8 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 
 			word := strings.Join(chars, "")
 			token := Token{lexeme: word}
-			if KEYWORDS[word] != "" {
-				token.tokenType = KEYWORDS[word]
+			if KEYWORDS[word] {
+				token.tokenType = "keyword"
 			} else {
 				token.tokenType = IDENTIFIER
 			}
@@ -223,7 +223,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			}
 			word := strings.Join(chars, "")
 			lexer.appendToken(Token{
-				tokenType: "NUMBER",
+				tokenType: "integerConstant",
 				lexeme:    word,
 			})
 		} else {
