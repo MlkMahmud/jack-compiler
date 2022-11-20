@@ -59,7 +59,6 @@ func (lexer *Lexer) appendToken(entry Token) {
 func (lexer *Lexer) read() interface{} {
 	buffer := make([]byte, 1)
 	bytes, err := lexer.source.Read(buffer)
-
 	if err != nil {
 		if err == io.EOF {
 			return nil
