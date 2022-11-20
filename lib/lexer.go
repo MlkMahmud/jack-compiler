@@ -10,7 +10,12 @@ import (
 	"strings"
 )
 
-var IDENTIFIER = "identifier"
+const (
+	IDENTIFIER = "identifier"
+	KEYWORD = "keyword"
+	STRING = "stringConstant"
+	SYMBOL = "symbol"
+)
 
 var KEYWORDS = map[string]bool{
 	"class": true, "constructor": true, "method": true,
