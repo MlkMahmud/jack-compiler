@@ -104,8 +104,171 @@ func (parser *Parser) parseParameterList() {
 		nextToken = parser.peekNextToken()
 	}
 
-	parser.write("\t\t</parameterList>\n")
+	parser.write(
+		"\t\t</parameterList>\n" +
+			"\t\t<symbol>)</symbol>\n",
+	)
 	// discard closing brace ")" token.
+	parser.getNextToken()
+}
+
+func (parser *Parser) parseVarDec() {
+	varDec := parser.getNextToken()
+	varType := parser.getNextToken()
+	varName := parser.getNextToken()
+
+	if varDec.lexeme != "var" {
+		panic(fmt.Sprintf("error: invalid token: %s", varDec.lexeme))
+	}
+
+	if !isValidType(varType) {
+		panic(fmt.Sprintf("error: invalid token: %s", varType.lexeme))
+	}
+
+	if varName.tokenType != IDENTIFIER {
+		panic(fmt.Sprintf("error: invalid token: %s", varName.lexeme))
+	}
+
+	parser.write(fmt.Sprintf(
+		"\t\t\t\t<varDec>\n"+
+			"\t\t\t\t\t<keyword>var<keyword>\n"+
+			"\t\t\t\t\t<%s>%s</%s>\n"+
+			"\t\t\t\t\t<identifier>%s</identifier>\n",
+		varType.tokenType,
+		varType.lexeme,
+		varType.tokenType,
+		varName.lexeme,
+	))
+
+	nextToken := parser.peekNextToken()
+
+	for nextToken.lexeme != ";" {
+		commaSymbol := parser.getNextToken()
+		nextVarName := parser.getNextToken()
+
+		if commaSymbol.lexeme != "," {
+			panic(fmt.Sprintf("error: invalid token: %s", commaSymbol.lexeme))
+		}
+
+		if nextVarName.tokenType != IDENTIFIER {
+			panic(fmt.Sprintf("error: invalid token: %s", nextVarName.lexeme))
+		}
+
+		parser.write(fmt.Sprintf(
+			"\t\t\t\t\t<symbol>,</symbol>\n"+
+				"\t\t\t\t\t<identifier>%s</identifier>\n",
+			nextVarName.lexeme,
+		))
+
+		nextToken = parser.peekNextToken()
+	}
+
+	parser.write(
+		"\t\t\t\t\t<symbol>;</symbol>\n" +
+			"\t\t\t\t</varDec>\n",
+	)
+	// discard ";" token.
+	parser.getNextToken()
+}
+
+func (parser *Parser) parseExpression() {}
+
+func (parser *Parser) parseDoStatement() {
+	doKeyword := parser.getNextToken()
+	subroutetineOrClassName := parser.getNextToken()
+
+	if doKeyword.lexeme != "do" {
+		panic(fmt.Sprintf("error: invalid token: %s", doKeyword.lexeme))
+	}
+
+	if subroutetineOrClassName.tokenType != IDENTIFIER {
+		panic(fmt.Sprintf("error: invalid token: %s", subroutetineOrClassName.lexeme))
+	}
+
+	parser.write("<keyword>do</keyword>\n")
+	periodOrLparen := parser.getNextToken()
+
+	if periodOrLparen.lexeme == "." {
+		className := subroutetineOrClassName
+		subroutineName := parser.getNextToken()
+
+		if subroutineName.tokenType != IDENTIFIER {
+			panic(fmt.Sprintf("error: invalid token: %s", subroutineName.lexeme))
+		}
+
+		if nextToken := parser.peekNextToken(); nextToken.lexeme != "(" {
+			panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
+		}
+
+		parser.write(fmt.Sprintf(
+			"<identifier>%s<identifier>\n"+
+				"<symbol>.</symbol>\n"+
+				"<identifier>%s</identifier>",
+			className.lexeme,
+			subroutineName.lexeme,
+		))
+	} else if periodOrLparen.lexeme == "(" {
+		subroutineName := subroutetineOrClassName
+		parser.write(fmt.Sprintf(
+			"<identifier>%s</identifier>\n"+
+				"<symbol>(</symbol>\n",
+			subroutineName.lexeme,
+		))
+	} else {
+		panic(fmt.Sprintf("error: invalid token: %s", periodOrLparen.lexeme))
+	}
+
+	// handle expression List
+}
+
+func (parser *Parser) parseStatements() {
+	statementType := parser.peekNextToken()
+
+	parser.write("<statements>\n")
+
+	switch statementType.lexeme {
+	case "do":
+		parser.parseDoStatement()
+	case "if":
+		// parseIfStatement
+	case "let":
+		// parseLetStatement
+	case "return":
+		// parseReturnStatement
+	case "while":
+		// parseWhileStatement
+	default:
+		panic(fmt.Sprintf("error: invalid token: %s", statementType.lexeme))
+	}
+	parser.write("</statements>\n")
+}
+
+func (parser *Parser) parseSubroutineBody() {
+	parser.write(
+		"<subroutineBody>\n" +
+			"<symbol>{</symbol>\n",
+	)
+
+	rBrace := parser.peekNextToken()
+
+	for rBrace.lexeme != "}" {
+		switch rBrace.lexeme {
+		case "var":
+			parser.parseVarDec()
+			rBrace = parser.peekNextToken()
+		case "do", "if", "let", "return", "while":
+			parser.parseStatements()
+			rBrace = parser.peekNextToken()
+		default:
+			panic(fmt.Sprintf("error: invalid token: %s", rBrace.lexeme))
+		}
+	}
+
+	parser.write(
+		"<symbol>}</symbol>\n" +
+			"</subroutineBody>\n",
+	)
+	// discard right brace "}" token
 	parser.getNextToken()
 }
 
@@ -113,7 +276,7 @@ func (parser *Parser) parseSubroutineDec() {
 	subroutineType := parser.getNextToken()
 	subroutineReturnType := parser.getNextToken()
 	subroutineName := parser.getNextToken()
-	leftBrace := parser.getNextToken()
+	leftParen := parser.getNextToken()
 
 	if subroutineType.lexeme != "constructor" &&
 		subroutineType.lexeme != "function" &&
@@ -129,16 +292,16 @@ func (parser *Parser) parseSubroutineDec() {
 		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
 	}
 
-	if leftBrace.lexeme != "(" {
+	if leftParen.lexeme != "(" {
 		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
 	}
 
 	parser.write(fmt.Sprintf(
-		"\t<subroutineDec>\n"+
-			"\t\t<keyword>%s</keyword>\n"+
-			"\t\t<%s>%s</%s>\n"+
-			"\t\t<identifier>%s</identifier>\n"+
-			"\t\t<symbol>(</symbol>\n",
+		"<subroutineDec>\n"+
+			"<keyword>%s</keyword>\n"+
+			"<%s>%s</%s>\n"+
+			"<identifier>%s</identifier>\n"+
+			"<symbol>(</symbol>\n",
 		subroutineType.lexeme,
 		subroutineReturnType.tokenType,
 		subroutineReturnType.lexeme,
@@ -147,10 +310,19 @@ func (parser *Parser) parseSubroutineDec() {
 	))
 
 	parser.parseParameterList()
+	nextToken := parser.peekNextToken()
 
-	parser.write("\t</subroutineDec>\n")
+	if nextToken.lexeme != "{" {
+		panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
+	}
+	// discard left brace token "{"
 	parser.getNextToken()
-	parser.getNextToken()
+
+	if parser.peekNextToken().lexeme != "}" {
+		parser.parseSubroutineBody()
+	}
+
+	parser.write("</subroutineDec>\n")
 }
 
 func (parser *Parser) parseClassVarDec() {
@@ -187,10 +359,10 @@ func (parser *Parser) parseClassVarDec() {
 
 	parser.write(
 		fmt.Sprintf(
-			"\t<classVarDec>\n"+
-				"\t\t<keyword>%s</keyword>\n"+
-				"\t\t<keyword>%s</keyword>\n"+
-				"\t\t<identifier>%s</identifier>\n",
+			"<classVarDec>\n"+
+				"<keyword>%s</keyword>\n"+
+				"<keyword>%s</keyword>\n"+
+				"<identifier>%s</identifier>\n",
 			varType.lexeme,
 			dataType.lexeme,
 			varName.lexeme,
@@ -210,8 +382,8 @@ func (parser *Parser) parseClassVarDec() {
 
 		parser.write(
 			fmt.Sprintf(
-				"\t\t<symbol>,</symbol>\n"+
-					"\t\t<identifier>%s</identifier>\n",
+				"<symbol>,</symbol>\n"+
+					"<identifier>%s</identifier>\n",
 				varName.lexeme,
 			),
 		)
@@ -220,8 +392,8 @@ func (parser *Parser) parseClassVarDec() {
 	}
 
 	parser.write(
-		"\t\t<symbol>;</symbol>\n" +
-			"\t</classVarDec>\n",
+		"<symbol>;</symbol>\n" +
+			"</classVarDec>\n",
 	)
 	// discard final ";" token.
 	parser.getNextToken()
@@ -267,9 +439,9 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 
 	parser.write(fmt.Sprintf(
 		"<class>\n"+
-			"\t<keyword>class</keyword>\n"+
-			"\t<identifier>%s</identifier>\n"+
-			"\t<symbol> { </symbol>\n",
+			"<keyword>class</keyword>\n"+
+			"<identifier>%s</identifier>\n"+
+			"<symbol> { </symbol>\n",
 		className.lexeme,
 	))
 
@@ -289,7 +461,7 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 				panic("error: invalid Jack program.")
 			}
 			parser.write(
-				"\t<symbol>}</symbol>\n" +
+				"<symbol>}</symbol>\n" +
 					"</class>\n",
 			)
 			// Discard the token
