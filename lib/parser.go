@@ -133,6 +133,35 @@ func (parser *Parser) parseVarDec() {
 }
 
 func (parser *Parser) parseExpression() {
+	parser.write("<expression>\n")
+
+	for end := parser.peekNextToken();  !isEndOfExpression(end); end = parser.peekNextToken() {
+		leftToken := parser.getNextToken()
+		if isKeywordConstant(leftToken) || leftToken.tokenType == STRING_CONSTANT || leftToken.tokenType == INTEGER_CONSTANT {
+			// If the token on the left-hand side is a keyword, integer or string constant
+			// the next token must be an "operator" or a token signifying the end of the expression (")", "]", ";")]
+			parser.write(fmt.Sprintf(
+				"<term>\n<%s>%s</%s>\n</term>\n",
+				leftToken.tokenType,
+				leftToken.lexeme,
+				leftToken.tokenType,
+			))
+
+			operator := parser.peekNextToken() 
+	
+			if !isEndOfExpression(operator) && !isOperator(operator) {
+				printErr(operator)
+			}
+			
+			if isOperator(operator) {
+				parser.write(fmt.Sprintf(
+					"<symbol>%s</symbol>\n",
+					writeSymbol(parser.getNextToken()),
+				))
+			}
+		} 
+	}
+	parser.write("</expression>\n")
 }
 
 func (parser *Parser) parseDoStatement() {

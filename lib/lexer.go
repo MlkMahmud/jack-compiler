@@ -12,8 +12,9 @@ import (
 
 const (
 	IDENTIFIER = "identifier"
+	INTEGER_CONSTANT = "integerConstant"
 	KEYWORD = "keyword"
-	STRING = "stringConstant"
+	STRING_CONSTANT = "stringConstant"
 	SYMBOL = "symbol"
 )
 
@@ -155,14 +156,14 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			} else {
 				// This is a division symbol
 				lexer.appendToken(Token{
-					tokenType: "symbol",
+					tokenType: SYMBOL,
 					lexeme:    "/",
 				})
 				char = nextChar
 			}
 		} else if SYMBOLS[char.(string)] {
 			lexer.appendToken(Token{
-				tokenType: "symbol",
+				tokenType: SYMBOL,
 				lexeme:    char.(string),
 			})
 			char = lexer.read()
@@ -196,7 +197,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			word := strings.Join(chars, "")
 
 			lexer.appendToken(Token{
-				tokenType: "stringConstant",
+				tokenType: STRING_CONSTANT,
 				lexeme:    fmt.Sprintf(`"%s"`, word),
 			})
 
@@ -213,7 +214,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			word := strings.Join(chars, "")
 			token := Token{lexeme: word}
 			if KEYWORDS[word] {
-				token.tokenType = "keyword"
+				token.tokenType = KEYWORD
 			} else {
 				token.tokenType = IDENTIFIER
 			}
@@ -227,7 +228,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			}
 			word := strings.Join(chars, "")
 			lexer.appendToken(Token{
-				tokenType: "integerConstant",
+				tokenType: INTEGER_CONSTANT,
 				lexeme:    word,
 			})
 		} else {

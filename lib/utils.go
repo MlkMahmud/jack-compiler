@@ -1,5 +1,9 @@
 package lib
 
+import (
+	"fmt"
+)
+
 func isValidType(token Token) bool {
 	if token.tokenType == IDENTIFIER {
 		return true
@@ -50,4 +54,47 @@ func isStatementDec(token Token) bool {
 		}
 	}
 	return false
+}
+
+func isKeywordConstant(token Token) bool {
+	for _, val := range []string{"false", "null", "this", "true"} {
+		if isKeyword(token, val) {
+			return true
+		}
+	}
+	return false
+}
+
+func isOperator(token Token) bool {
+	for _, val := range []string{"+", "-", "*", "/", "&", "|", "<", ">", "="} {
+		if isSymbol(token, val) {
+			return true
+		}
+	}
+	return false
+}
+
+func isUnaryOperator(token Token) bool {
+	return isSymbol(token, "-") || isSymbol(token, "~")
+}
+
+func printErr(token Token) {
+	panic(fmt.Sprintf("error: invalid token: %s", token.lexeme))
+}
+
+func writeSymbol(token Token) string {
+	switch token.lexeme {
+	case "<":
+		return "&lt;"
+	case ">":
+		return "&gt;"
+	case "&":
+		return "&amp;"
+	default:
+		return token.lexeme
+	}
+}
+
+func isEndOfExpression(token Token) bool {
+	return isSymbol(token, "]") || isSymbol(token, ")") || isSymbol(token, ";")
 }
