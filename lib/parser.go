@@ -42,59 +42,37 @@ func (parser *Parser) write(str string) {
 }
 
 func (parser *Parser) parseParameterList() {
-	argType := parser.getNextToken()
-	argName := parser.getNextToken()
-
-	if !isValidType(argType) {
-		panic(fmt.Sprintf("error: invalid token: %s", argType.lexeme))
-	}
-
-	if !isIdentifier(argName) {
-		panic(fmt.Sprintf("error: invalid token: %s", argName.lexeme))
-	}
-
-	parser.write(fmt.Sprintf(
-		"\t\t<parameterList>\n"+
-			"\t\t\t<%s>%s</%s>\n"+
-			"\t\t\t<identifier>%s</identifier>\n",
-		argType.tokenType,
-		argType.lexeme,
-		argType.tokenType,
-		argName.lexeme,
-	))
+	parser.write("<parameterList>\n")
 
 	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, ")"); nextToken = parser.peekNextToken() {
-		commaLiteral := parser.getNextToken()
-		nextArgType := parser.getNextToken()
-		nextArgName := parser.getNextToken()
+		argType := parser.getNextToken()
+		argName := parser.getNextToken()
 
-		if !isSymbol(commaLiteral, ",") {
-			panic(fmt.Sprintf("error: invalid token: %s", commaLiteral.lexeme))
+		if !isValidType(argType) {
+			panic(fmt.Sprintf("error: invalid token: %s", argType.lexeme))
 		}
 
-		if !isValidType(nextArgType) {
+		if !isIdentifier(argName) {
 			panic(fmt.Sprintf("error: invalid token: %s", argName.lexeme))
 		}
 
-		if !isIdentifier(nextArgName) {
-			panic(fmt.Sprintf("error: invalid token: %s", nextArgName.lexeme))
-		}
-
 		parser.write(fmt.Sprintf(
-			"\t\t\t<symbol>,</symbol>\n"+
-				"\t\t\t<%s>%s</%s>\n"+
-				"\t\t\t<identifier>%s</identifier>\n",
-			nextArgType.tokenType,
-			nextArgType.lexeme,
-			nextArgType.tokenType,
-			nextArgName.lexeme,
+			"<%s>%s</%s>\n<identifier>%s</identifier>\n",
+			argType.tokenType,
+			argType.lexeme,
+			argType.tokenType,
+			argName.lexeme,
 		))
+
+		if isSymbol(parser.peekNextToken(), ",") {
+			parser.write("<symbol>,</symbol>\n")
+			// discard "," token.
+			parser.getNextToken()
+		}
 	}
 
-	parser.write(
-		"\t\t</parameterList>\n" +
-			"\t\t<symbol>)</symbol>\n",
-	)
+	parser.write("</parameterList>\n<symbol>)</symbol>\n")
+
 	// discard closing brace ")" token.
 	parser.getNextToken()
 }
@@ -154,7 +132,8 @@ func (parser *Parser) parseVarDec() {
 	parser.getNextToken()
 }
 
-func (parser *Parser) parseExpression() {}
+func (parser *Parser) parseExpression() {
+}
 
 func (parser *Parser) parseDoStatement() {
 	doKeyword := parser.getNextToken()
@@ -186,9 +165,9 @@ func (parser *Parser) parseDoStatement() {
 		}
 
 		parser.write(fmt.Sprintf(
-			"<identifier>%s<identifier>\n"+
+			"<identifier>%s</identifier>\n"+
 				"<symbol>.</symbol>\n"+
-				"<identifier>%s</identifier>",
+				"<identifier>%s</identifier>\n",
 			className.lexeme,
 			subroutineName.lexeme,
 		))
@@ -203,24 +182,31 @@ func (parser *Parser) parseDoStatement() {
 		panic(fmt.Sprintf("error: invalid token: %s", periodOrLparen.lexeme))
 	}
 
-	parser.write("<expressionList>")
 	// discard the opening paren char "(" and parse the first expression in the expression list.
 	parser.getNextToken()
-	parser.parseExpression()
+
+	parser.write("<symbol>(</symbol>\n<expressionList>\n")
 
 	// Parse all expressions in list until we hit the closing paren ")"char.
-	for end := parser.peekNextToken(); end.lexeme != ")" && end.tokenType != SYMBOL; end = parser.peekNextToken() {
-		/*
-			The first token should be a comma "," symbol.
-			If it is discard it. If it's not throw an error
-		*/
-		commaSymbol := parser.getNextToken()
-		if commaSymbol.lexeme != "," && commaSymbol.tokenType != SYMBOL {
-			panic(fmt.Sprintf("error: invalid token: %s", commaSymbol.lexeme))
-		}
+	for end := parser.peekNextToken(); !isSymbol(end, ")"); end = parser.peekNextToken() {
 		parser.parseExpression()
+		nextToken := parser.peekNextToken()
+
+		if !isSymbol(nextToken, ",") && !isSymbol(nextToken, ")") {
+			panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
+		}
+
+		if isSymbol(nextToken, ",") {
+			// A comma symbol means there are more expressions in the list.
+			// Discard the "comma" token and let the "parseExpresssion" function handle the expression
+			// in the next iteration of this loop.
+			parser.getNextToken()
+		}
 	}
-	parser.write("</expressionList>")
+	parser.write("</expressionList>\n<symbol>)</symbol>")
+	// discard ")" and ";" tokens
+	parser.getNextToken()
+	parser.getNextToken()
 }
 
 func (parser *Parser) parseStatements() {
@@ -232,7 +218,7 @@ func (parser *Parser) parseStatements() {
 
 	parser.write("<statements>\n")
 
-	for !isKeyword(token, "var") && !isSymbol(token, "}") {
+	for !isSymbol(token, "}") {
 		switch token.lexeme {
 		case "do":
 			parser.parseDoStatement()
