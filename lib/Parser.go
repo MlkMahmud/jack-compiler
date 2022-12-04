@@ -24,8 +24,26 @@ func NewParser() *Parser {
 	return new(Parser)
 }
 
+func (parser *Parser) write(tag string, lexeme any) {
+	var str string;
+	if lexeme == nil {
+		str = fmt.Sprintf("<%s>\n", tag)
+	} else {
+		str = fmt.Sprintf(
+			"<%s>%s</%s>\n",
+			tag,
+			lexeme,
+			tag,
+		)
+	}
+	_, err := parser.outFile.WriteString(str)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (parser *Parser) throwSyntaxError(token Token) {
-	srcFile := updateFileExt(parser.outFile.Name(), ".jack")
+	srcFile := replaceFileExt(parser.outFile.Name(), ".jack")
 	errorMessage := fmt.Sprintf(
 		"(%s):[%d:%d]: syntax error: unexpected token '%s'\n",
 		srcFile,
@@ -33,7 +51,7 @@ func (parser *Parser) throwSyntaxError(token Token) {
 		token.colNum,
 		token.lexeme,
 	)
-	panic(&CompilerError{ errorMessage })
+	panic(&CompilerError{errorMessage})
 }
 
 func (parser *Parser) getNextToken() Token {
@@ -47,7 +65,7 @@ func (parser *Parser) peekNextToken() Token {
 	return item.Value.(Token)
 }
 
-func (parser *Parser) checkToken(terminals []string, tokenType TokenType) {
+func (parser *Parser) parseToken(terminals []string, tokenType TokenType) {
 	token := parser.getNextToken()
 
 	switch tokenType {
@@ -63,23 +81,21 @@ func (parser *Parser) checkToken(terminals []string, tokenType TokenType) {
 
 	case INTEGER_CONSTANT, STRING_CONSTANT:
 		{
-			if token.tokenType == tokenType { return }
+			if token.tokenType == tokenType {
+				return
+			}
 			parser.throwSyntaxError(token)
 		}
 
 	case IDENTIFIER:
 		{
-			if token.tokenType == tokenType { return }
+			if token.tokenType == tokenType {
+				return
+			}
 			parser.throwSyntaxError(token)
 		}
 	}
-}
-
-func (parser *Parser) write(str string) {
-	_, err := parser.outFile.WriteString(str)
-	if err != nil {
-		panic(err)
-	}
+	parser.write(tokenType.toString(token.tokenType), token.lexeme)
 }
 
 func (parser *Parser) parseParameterList() {
@@ -471,10 +487,10 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 			log.Fatal(err)
 		}
 
-		if panicErr := recover(); panicErr  != nil {
-			var compilerError *CompilerError;
-			if errors.As(panicErr.(error), &compilerError) {
-				fmt.Println(panicErr)
+		if r := recover(); r != nil {
+			var compilerError *CompilerError
+			if errors.As(r.(error), &compilerError) {
+				fmt.Println(r)
 			} else {
 				debug.PrintStack()
 			}
@@ -484,38 +500,22 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 
 	parser.outFile = file
 	parser.tokens = tokens
-
-	parser.checkToken([]string{"class"}, KEYWORD)
-	parser.checkToken([]string{}, IDENTIFIER)
-	parser.checkToken([]string{"{"}, SYMBOL)
-
-	parser.write(fmt.Sprintf(
-		"<class>\n"+
-			"<keyword>class</keyword>\n"+
-			"<identifier>%s</identifier>\n"+
-			"<symbol> { </symbol>\n",
-		"",
-	))
+	
+	parser.write("class", nil)
+	parser.parseToken([]string{"class"}, KEYWORD)
+	parser.parseToken([]string{}, IDENTIFIER)
+	parser.parseToken([]string{"{"}, SYMBOL)
 
 	for end := parser.peekNextToken(); !isSymbol(end, "}"); end = parser.peekNextToken() {
 		if isClassVarDec(end) {
 			parser.parseClassVarDec()
 		} else if isSubroutineDec(end) {
 			parser.parseSubroutineDec()
-			} else {
+		} else {
 			parser.throwSyntaxError(end)
 		}
 	}
-	// Signifies the end of the jack program, so it must be the last token in the list.
-	if parser.tokens.Len() > 1 {
-		panic("error: invalid Jack program.")
-	}
 
-	// Discard the token
-	parser.getNextToken()
-
-	parser.write(
-		"<symbol>}</symbol>\n" +
-			"</class>\n",
-	)
+	parser.parseToken([]string{"}"}, SYMBOL)
+	parser.write("/class", nil)
 }

@@ -10,12 +10,20 @@ import (
 	"strings"
 )
 
+type TokenType int
+
+func (tokenType TokenType) toString(index TokenType) string {
+	return []string{
+		"identifier", "integerConstant", "keyword", "stringConstant", "symbol",
+	}[index]
+}
+
 const (
-	IDENTIFIER = "identifier"
-	INTEGER_CONSTANT = "integerConstant"
-	KEYWORD = "keyword"
-	STRING_CONSTANT = "stringConstant"
-	SYMBOL = "symbol"
+	IDENTIFIER TokenType = iota
+	INTEGER_CONSTANT
+	KEYWORD
+	STRING_CONSTANT
+	SYMBOL
 )
 
 var KEYWORDS = map[string]bool{
@@ -41,10 +49,10 @@ type Lexer struct {
 }
 
 type Token struct {
-	tokenType string
-	lexeme    string
 	colNum    int
+	lexeme    string
 	lineNum   int
+	tokenType TokenType
 }
 
 func NewLexer() *Lexer {
@@ -101,7 +109,6 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 	lexer.lineNum = 1
 	lexer.source = file
 	lexer.tokens = list.New()
-
 	char := lexer.read()
 
 	for char != nil {

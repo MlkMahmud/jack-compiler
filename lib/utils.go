@@ -108,7 +108,7 @@ func isEndOfExpression(token Token) bool {
 	return isSymbol(token, "]") || isSymbol(token, ")") || isSymbol(token, ";")
 }
 
-func updateFileExt(filename, ext string) string {
+func replaceFileExt(filename, ext string) string {
 	extension := filepath.Ext(filename)
 	basename := filename[0: len(filename) - len(extension)]
 	return basename + ext
