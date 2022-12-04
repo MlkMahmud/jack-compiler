@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
-	"strings"
 )
 
 /*
@@ -25,6 +24,18 @@ func NewParser() *Parser {
 	return new(Parser)
 }
 
+func (parser *Parser) throwSyntaxError(token Token) {
+	srcFile := updateFileExt(parser.outFile.Name(), ".jack")
+	errorMessage := fmt.Sprintf(
+		"(%s):[%d:%d]: syntax error: unexpected token '%s'\n",
+		srcFile,
+		token.lineNum,
+		token.colNum,
+		token.lexeme,
+	)
+	panic(&CompilerError{ errorMessage })
+}
+
 func (parser *Parser) getNextToken() Token {
 	item := parser.tokens.Front()
 	parser.tokens.Remove(item)
@@ -38,8 +49,7 @@ func (parser *Parser) peekNextToken() Token {
 
 func (parser *Parser) checkToken(terminals []string, tokenType TokenType) {
 	token := parser.getNextToken()
-	srcFile := updateFileExt(parser.outFile.Name(), ".jack")
-	log.SetFlags(0)
+
 	switch tokenType {
 	case KEYWORD, SYMBOL:
 		{
@@ -48,49 +58,19 @@ func (parser *Parser) checkToken(terminals []string, tokenType TokenType) {
 					return
 				}
 			}
-			errorMessage := fmt.Sprintf(
-				"%s:%d:%d: syntax error: unexpected token '%s' expected one of [%s]\n",
-				srcFile,
-				token.lineNum,
-				token.colNum,
-				token.lexeme,
-				strings.Join(terminals, ", "),
-			)
-			panic(&CompilerError{ errorMessage: errorMessage })
+			parser.throwSyntaxError(token)
 		}
 
 	case INTEGER_CONSTANT, STRING_CONSTANT:
 		{
 			if token.tokenType == tokenType { return }
-			var expected string
-			if tokenType == INTEGER_CONSTANT {
-				expected = "an integer constant"
-			} else {
-				expected = "a string constant"
-			}
-			
-			errorMessage := fmt.Sprintf(
-				"%s:%d:%d: syntax error: unexpected token '%s' expected %s\n",
-				srcFile,
-				token.lineNum,
-				token.colNum,
-				token.lexeme,
-				expected,
-			)
-			panic(&CompilerError{ errorMessage: errorMessage })
+			parser.throwSyntaxError(token)
 		}
 
 	case IDENTIFIER:
 		{
 			if token.tokenType == tokenType { return }
-			errorMessage := fmt.Sprintf(
-				"%s:%d:%d: syntax error: unexpected token. '%s' is not a valid identifier\n",
-				srcFile,
-				token.lineNum,
-				token.colNum,
-				token.lexeme,
-			)
-			panic(&CompilerError{ errorMessage: errorMessage })
+			parser.throwSyntaxError(token)
 		}
 	}
 }
@@ -523,8 +503,7 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 		} else if isSubroutineDec(end) {
 			parser.parseSubroutineDec()
 			} else {
-			parser.checkToken([]string{"constructor", "function", "method"}, KEYWORD)
-			panic(fmt.Sprintf("error: invalid token: %s", end.lexeme))
+			parser.throwSyntaxError(end)
 		}
 	}
 	// Signifies the end of the jack program, so it must be the last token in the list.

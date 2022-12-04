@@ -2,7 +2,16 @@ package lib
 
 import (
 	"fmt"
+	"path/filepath"
 )
+
+type CompilerError struct {
+	errorMessage string
+}
+
+func (e *CompilerError) Error() string {
+	return e.errorMessage
+}
 
 func isValidType(token Token) bool {
 	if token.tokenType == IDENTIFIER {
@@ -97,4 +106,10 @@ func writeSymbol(token Token) string {
 
 func isEndOfExpression(token Token) bool {
 	return isSymbol(token, "]") || isSymbol(token, ")") || isSymbol(token, ";")
+}
+
+func updateFileExt(filename, ext string) string {
+	extension := filepath.Ext(filename)
+	basename := filename[0: len(filename) - len(extension)]
+	return basename + ext
 }
