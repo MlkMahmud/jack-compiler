@@ -25,7 +25,7 @@ func NewParser() *Parser {
 }
 
 func (parser *Parser) write(tag string, lexeme any) {
-	var str string;
+	var str string
 	if lexeme == nil {
 		str = fmt.Sprintf("<%s>\n", tag)
 	} else {
@@ -65,246 +65,94 @@ func (parser *Parser) peekNextToken() Token {
 	return item.Value.(Token)
 }
 
-func (parser *Parser) parseToken(terminals []string, tokenType TokenType) {
+func (parser *Parser) parseToken(terminals []string) {
 	token := parser.getNextToken()
-
-	switch tokenType {
+	
+	switch token.tokenType {
 	case KEYWORD, SYMBOL:
 		{
 			for _, val := range terminals {
-				if val == token.lexeme && (token.tokenType == tokenType) {
+				if val == token.lexeme {
+					parser.write(token.tokenType.toString(), token.lexeme)
 					return
 				}
 			}
-			parser.throwSyntaxError(token)
 		}
 
 	case INTEGER_CONSTANT, STRING_CONSTANT:
 		{
-			if token.tokenType == tokenType {
-				return
+			for _, val := range terminals {
+				if val == token.tokenType.toString() {
+					parser.write(token.tokenType.toString(), token.lexeme)
+					return
+				}
 			}
-			parser.throwSyntaxError(token)
 		}
 
 	case IDENTIFIER:
 		{
-			if token.tokenType == tokenType {
-				return
+			for _, val := range terminals {
+				if val == "className" || val == "subroutineName" || val == "varName" {
+					parser.write(token.tokenType.toString(), token.lexeme)
+					return
+				}
 			}
-			parser.throwSyntaxError(token)
 		}
 	}
-	parser.write(tokenType.toString(token.tokenType), token.lexeme)
+	parser.throwSyntaxError(token)
 }
 
 func (parser *Parser) parseParameterList() {
-	parser.write("<parameterList>\n")
+	parser.write("parameterList", nil)
 
 	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, ")"); nextToken = parser.peekNextToken() {
-		argType := parser.getNextToken()
-		argName := parser.getNextToken()
-
-		if !isValidType(argType) {
-			panic(fmt.Sprintf("error: invalid token: %s", argType.lexeme))
-		}
-
-		if !isIdentifier(argName) {
-			panic(fmt.Sprintf("error: invalid token: %s", argName.lexeme))
-		}
-
-		parser.write(fmt.Sprintf(
-			"<%s>%s</%s>\n<identifier>%s</identifier>\n",
-			argType.tokenType,
-			argType.lexeme,
-			argType.tokenType,
-			argName.lexeme,
-		))
-
+		parser.parseToken([]string{"boolean", "char", "className", "int"})
+		parser.parseToken([]string{"varName"})
 		if isSymbol(parser.peekNextToken(), ",") {
-			parser.write("<symbol>,</symbol>\n")
-			// discard "," token.
-			parser.getNextToken()
+			parser.parseToken([]string{","})
 		}
 	}
 
-	parser.write("</parameterList>\n<symbol>)</symbol>\n")
-
-	// discard closing brace ")" token.
-	parser.getNextToken()
+	parser.write("/parameterList", nil)
 }
 
 func (parser *Parser) parseVarDec() {
-	varDec := parser.getNextToken()
-	varType := parser.getNextToken()
-	varName := parser.getNextToken()
-
-	if !isKeyword(varDec, "var") {
-		panic(fmt.Sprintf("error: invalid token: %s", varDec.lexeme))
-	}
-
-	if !isValidType(varType) {
-		panic(fmt.Sprintf("error: invalid token: %s", varType.lexeme))
-	}
-
-	if !isIdentifier(varName) {
-		panic(fmt.Sprintf("error: invalid token: %s", varName.lexeme))
-	}
-
-	parser.write(fmt.Sprintf(
-		"\t\t\t\t<varDec>\n"+
-			"\t\t\t\t\t<keyword>var<keyword>\n"+
-			"\t\t\t\t\t<%s>%s</%s>\n"+
-			"\t\t\t\t\t<identifier>%s</identifier>\n",
-		varType.tokenType,
-		varType.lexeme,
-		varType.tokenType,
-		varName.lexeme,
-	))
+	parser.write("varDec", nil)
+	parser.parseToken([]string{"var"})
+	parser.parseToken([]string{"boolean", "char", "className", "int"})
+	parser.parseToken([]string{"varName"})
 
 	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, ";"); nextToken = parser.peekNextToken() {
-		commaSymbol := parser.getNextToken()
-		nextVarName := parser.getNextToken()
-
-		if !isSymbol(commaSymbol, ",") {
-			panic(fmt.Sprintf("error: invalid token: %s", commaSymbol.lexeme))
-		}
-
-		if !isIdentifier(nextVarName) {
-			panic(fmt.Sprintf("error: invalid token: %s", nextVarName.lexeme))
-		}
-
-		parser.write(fmt.Sprintf(
-			"\t\t\t\t\t<symbol>,</symbol>\n"+
-				"\t\t\t\t\t<identifier>%s</identifier>\n",
-			nextVarName.lexeme,
-		))
+		parser.parseToken([]string{","})
+		parser.parseToken([]string{"varName"})
 	}
 
-	parser.write(
-		"\t\t\t\t\t<symbol>;</symbol>\n" +
-			"\t\t\t\t</varDec>\n",
-	)
-	// discard ";" token.
-	parser.getNextToken()
-}
-
-func (parser *Parser) parseExpression() {
-	parser.write("<expression>\n")
-
-	for end := parser.peekNextToken(); !isEndOfExpression(end); end = parser.peekNextToken() {
-		leftToken := parser.getNextToken()
-		if isKeywordConstant(leftToken) || leftToken.tokenType == STRING_CONSTANT || leftToken.tokenType == INTEGER_CONSTANT {
-			// If the token on the left-hand side is a keyword, integer or string constant
-			// the next token must be an "operator" or a token signifying the end of the expression (")", "]", ";")]
-			parser.write(fmt.Sprintf(
-				"<term>\n<%s>%s</%s>\n</term>\n",
-				leftToken.tokenType,
-				leftToken.lexeme,
-				leftToken.tokenType,
-			))
-
-			operator := parser.peekNextToken()
-
-			if !isEndOfExpression(operator) && !isOperator(operator) {
-				printErr(operator)
-			}
-
-			if isOperator(operator) {
-				parser.write(fmt.Sprintf(
-					"<symbol>%s</symbol>\n",
-					writeSymbol(parser.getNextToken()),
-				))
-			}
-		}
-	}
-	parser.write("</expression>\n")
+	parser.parseToken([]string{";"})
+	parser.write("/varDec", nil)
 }
 
 func (parser *Parser) parseDoStatement() {
-	doKeyword := parser.getNextToken()
-	subroutetineOrClassName := parser.getNextToken()
+	parser.write("doStatement", nil)
+	parser.parseToken([]string{"do"})
+	parser.parseToken([]string{"className", "subroutineName"})
 
-	if !isKeyword(doKeyword, "do") {
-		panic(fmt.Sprintf("error: invalid token: %s", doKeyword.lexeme))
+	if isSymbol(parser.peekNextToken(), ".") {
+		parser.parseToken([]string{"."})
+		parser.parseToken([]string{"subroutineName"})
 	}
 
-	if !isIdentifier(subroutetineOrClassName) {
-		panic(fmt.Sprintf("error: invalid token: %s", subroutetineOrClassName.lexeme))
-	}
+	parser.parseToken([]string{"("})
 
-	parser.write("<keyword>do</keyword>\n")
-	periodOrLparen := parser.peekNextToken()
-
-	if isSymbol(periodOrLparen, ".") {
-		className := subroutetineOrClassName
-		// discard "." token.
-		parser.getNextToken()
-		subroutineName := parser.getNextToken()
-
-		if !isIdentifier(subroutineName) {
-			panic(fmt.Sprintf("error: invalid token: %s", subroutineName.lexeme))
-		}
-
-		if nextToken := parser.peekNextToken(); !isSymbol(nextToken, "(") {
-			panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
-		}
-
-		parser.write(fmt.Sprintf(
-			"<identifier>%s</identifier>\n"+
-				"<symbol>.</symbol>\n"+
-				"<identifier>%s</identifier>\n",
-			className.lexeme,
-			subroutineName.lexeme,
-		))
-	} else if isSymbol(periodOrLparen, "(") {
-		subroutineName := subroutetineOrClassName
-		parser.write(fmt.Sprintf(
-			"<identifier>%s</identifier>\n"+
-				"<symbol>(</symbol>\n",
-			subroutineName.lexeme,
-		))
-	} else {
-		panic(fmt.Sprintf("error: invalid token: %s", periodOrLparen.lexeme))
-	}
-
-	// discard the opening paren char "(" and parse the first expression in the expression list.
-	parser.getNextToken()
-
-	parser.write("<symbol>(</symbol>\n<expressionList>\n")
-
-	// Parse all expressions in list until we hit the closing paren ")"char.
-	for end := parser.peekNextToken(); !isSymbol(end, ")"); end = parser.peekNextToken() {
-		parser.parseExpression()
-		nextToken := parser.peekNextToken()
-
-		if !isSymbol(nextToken, ",") && !isSymbol(nextToken, ")") {
-			panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
-		}
-
-		if isSymbol(nextToken, ",") {
-			// A comma symbol means there are more expressions in the list.
-			// Discard the "comma" token and let the "parseExpresssion" function handle the expression
-			// in the next iteration of this loop.
-			parser.getNextToken()
-		}
-	}
-	parser.write("</expressionList>\n<symbol>)</symbol>")
-	// discard ")" and ";" tokens
-	parser.getNextToken()
-	parser.getNextToken()
+	// parser.parseExpressionList()
+	parser.parseToken([]string{")"})
+	parser.parseToken([]string{";"})
+	parser.write("/doStatement", nil)
 }
 
 func (parser *Parser) parseStatements() {
-	token := parser.peekNextToken()
+	parser.write("statements", nil)
 
-	if !isStatementDec(token) {
-		panic(fmt.Sprintf("error: invalid token: %s", token.lexeme))
-	}
-
-	parser.write("<statements>\n")
-
-	for !isSymbol(token, "}") {
+	for token := parser.peekNextToken(); !isSymbol(token, "}"); token = parser.peekNextToken() {
 		switch token.lexeme {
 		case "do":
 			parser.parseDoStatement()
@@ -317,18 +165,15 @@ func (parser *Parser) parseStatements() {
 		case "while":
 			// parseWhileStatement
 		default:
-			panic(fmt.Sprintf("error: invalid token: %s", token.lexeme))
+			parser.throwSyntaxError(token)
 		}
-		token = parser.peekNextToken()
 	}
-	parser.write("</statements>\n")
+	parser.write("/statements", nil)
 }
 
 func (parser *Parser) parseSubroutineBody() {
-	parser.write(
-		"<subroutineBody>\n" +
-			"<symbol>{</symbol>\n",
-	)
+	parser.write("subroutineBody", nil)
+	parser.parseToken([]string{"{"})
 
 	for end := parser.peekNextToken(); !isSymbol(end, "}"); end = parser.peekNextToken() {
 		if isKeyword(end, "var") {
@@ -337,142 +182,42 @@ func (parser *Parser) parseSubroutineBody() {
 			parser.parseStatements()
 		}
 	}
-
-	parser.write(
-		"<symbol>}</symbol>\n" +
-			"</subroutineBody>\n",
-	)
-	// discard right brace "}" token
-	parser.getNextToken()
+	parser.parseToken([]string{"}"})
+	parser.write("/subroutineBody", nil)
 }
 
 func (parser *Parser) parseSubroutineDec() {
-	subroutineType := parser.getNextToken()
-	subroutineReturnType := parser.getNextToken()
-	subroutineName := parser.getNextToken()
-	leftParen := parser.getNextToken()
-
-	if !isSubroutineDec(subroutineType) {
-		panic(fmt.Sprintf("error: invalid token: %s", subroutineType.lexeme))
-	}
-
-	if !isValidType(subroutineReturnType) && subroutineReturnType.lexeme != "void" {
-		panic(fmt.Sprintf("error: invalid token: %s", subroutineReturnType.lexeme))
-	}
-
-	if !isIdentifier(subroutineName) {
-		panic(fmt.Sprintf("error: invalid token: %s", subroutineName.lexeme))
-	}
-
-	if !isSymbol(leftParen, "(") {
-		panic(fmt.Sprintf("error: invalid token: %s", leftParen.lexeme))
-	}
-
-	parser.write(fmt.Sprintf(
-		"<subroutineDec>\n"+
-			"<keyword>%s</keyword>\n"+
-			"<%s>%s</%s>\n"+
-			"<identifier>%s</identifier>\n"+
-			"<symbol>(</symbol>\n",
-		subroutineType.lexeme,
-		subroutineReturnType.tokenType,
-		subroutineReturnType.lexeme,
-		subroutineReturnType.tokenType,
-		subroutineName.lexeme,
-	))
+	parser.write("subroutineDec", nil)
+	parser.parseToken([]string{"constructor", "function", "method"})
+	parser.parseToken([]string{"boolean", "char", "className", "int", "void"})
+	parser.parseToken([]string{"subroutineName"})
+	parser.parseToken([]string{"("})
 
 	parser.parseParameterList()
-	nextToken := parser.peekNextToken()
-
-	if !isSymbol(nextToken, "{") {
-		panic(fmt.Sprintf("error: invalid token: %s", nextToken.lexeme))
-	}
-	// discard left brace token "{"
-	parser.getNextToken()
-
-	if !isSymbol(parser.peekNextToken(), "}") {
-		parser.parseSubroutineBody()
-	}
-
-	parser.write("</subroutineDec>\n")
+	parser.parseToken([]string{")"})
+	parser.parseSubroutineBody()
+	parser.write("/subroutineDec", nil)
 }
 
 func (parser *Parser) parseClassVarDec() {
-	varType := parser.getNextToken()
-	dataType := parser.getNextToken()
-	varName := parser.getNextToken()
+	parser.write("classVarDec", nil)
 
-	if !isClassVarDec(varType) {
-		panic(
-			fmt.Sprintf(
-				"invalid variable type: %s.\nclass variables must be decalred with either the 'field' or 'static' keyword.",
-				varName.lexeme,
-			),
-		)
-	}
-
-	if !isValidType(dataType) {
-		panic(
-			fmt.Sprintf(
-				"invalid variable dataType: %s",
-				dataType.lexeme,
-			),
-		)
-	}
-
-	if !isIdentifier(varName) {
-		panic(
-			fmt.Sprintf(
-				"invalid variable name: %s",
-				varName.lexeme,
-			),
-		)
-	}
-
-	parser.write(
-		fmt.Sprintf(
-			"<classVarDec>\n"+
-				"<keyword>%s</keyword>\n"+
-				"<keyword>%s</keyword>\n"+
-				"<identifier>%s</identifier>\n",
-			varType.lexeme,
-			dataType.lexeme,
-			varName.lexeme,
-		),
-	)
+	parser.parseToken([]string{"field", "static"})
+	parser.parseToken([]string{"boolean", "char", "className", "int"})
+	parser.parseToken([]string{"varName"})
 
 	nextToken := parser.peekNextToken()
 
+	// Check if it's a multi var declaration.
 	for !isSymbol(nextToken, ";") {
-		// Check if it's a multi var declaration.
-		commaSymbol := parser.getNextToken()
-		nextVarName := parser.getNextToken()
-
-		if !isSymbol(commaSymbol, ",") {
-			panic(fmt.Sprintf("error: invalid token: %s", commaSymbol.lexeme))
-		}
-
-		if !isIdentifier(nextVarName) {
-			panic(fmt.Sprintf("error: invalid token: %s", nextVarName.lexeme))
-		}
-
-		parser.write(
-			fmt.Sprintf(
-				"<symbol>,</symbol>\n"+
-					"<identifier>%s</identifier>\n",
-				varName.lexeme,
-			),
-		)
+		parser.parseToken([]string{","})
+		parser.parseToken([]string{"varName"})
 
 		nextToken = parser.peekNextToken()
 	}
 
-	parser.write(
-		"<symbol>;</symbol>\n" +
-			"</classVarDec>\n",
-	)
-	// discard final ";" token.
-	parser.getNextToken()
+	parser.parseToken([]string{";"})
+	parser.write("/classVarDec", nil)
 }
 
 func (parser *Parser) Parse(tokens *list.List, outFile string) {
@@ -500,11 +245,11 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 
 	parser.outFile = file
 	parser.tokens = tokens
-	
+
 	parser.write("class", nil)
-	parser.parseToken([]string{"class"}, KEYWORD)
-	parser.parseToken([]string{}, IDENTIFIER)
-	parser.parseToken([]string{"{"}, SYMBOL)
+	parser.parseToken([]string{"class"})
+	parser.parseToken([]string{"className"})
+	parser.parseToken([]string{"{"})
 
 	for end := parser.peekNextToken(); !isSymbol(end, "}"); end = parser.peekNextToken() {
 		if isClassVarDec(end) {
@@ -516,6 +261,6 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 		}
 	}
 
-	parser.parseToken([]string{"}"}, SYMBOL)
+	parser.parseToken([]string{"}"})
 	parser.write("/class", nil)
 }
