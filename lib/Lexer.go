@@ -204,7 +204,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 
 			lexer.appendToken(tokens, Token{
 				tokenType: STRING_CONSTANT,
-				lexeme:    fmt.Sprintf(`"%s"`, word),
+				lexeme:    word,
 			})
 
 			char = lexer.read()
