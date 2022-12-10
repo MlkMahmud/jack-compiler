@@ -12,10 +12,10 @@ import (
 
 type TokenType int
 
-func (tokenType TokenType) toString(index TokenType) string {
+func (tokenType TokenType) toString() string {
 	return []string{
 		"identifier", "integerConstant", "keyword", "stringConstant", "symbol",
-	}[index]
+	}[tokenType]
 }
 
 const (
