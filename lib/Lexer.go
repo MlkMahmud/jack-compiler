@@ -45,7 +45,6 @@ type Lexer struct {
 	colNum  int
 	lineNum int
 	source  *os.File
-	tokens  *list.List
 }
 
 type Token struct {
@@ -59,7 +58,7 @@ func NewLexer() *Lexer {
 	return new(Lexer)
 }
 
-func (lexer *Lexer) appendToken(entry Token) {
+func (lexer *Lexer) appendToken(tokens *list.List, entry Token) {
 	if len(entry.lexeme) > 1 {
 		// Set the current token's colNum to the position of its first character.
 		entry.colNum = lexer.colNum - len(entry.lexeme)
@@ -67,7 +66,7 @@ func (lexer *Lexer) appendToken(entry Token) {
 		entry.colNum = lexer.colNum
 	}
 	entry.lineNum = lexer.lineNum
-	lexer.tokens.PushBack(entry)
+	tokens.PushBack(entry)
 }
 
 func (lexer *Lexer) read() interface{} {
@@ -100,6 +99,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 		}
 	}()
 
+	tokens := list.New()
 	file, err := os.Open(src)
 	if err != nil {
 		log.Fatal(err)
@@ -108,7 +108,6 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 	lexer.colNum = 0
 	lexer.lineNum = 1
 	lexer.source = file
-	lexer.tokens = list.New()
 	char := lexer.read()
 
 	for char != nil {
@@ -162,14 +161,14 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 				char = lexer.read()
 			} else {
 				// This is a division symbol
-				lexer.appendToken(Token{
+				lexer.appendToken(tokens, Token{
 					tokenType: SYMBOL,
 					lexeme:    "/",
 				})
 				char = nextChar
 			}
 		} else if SYMBOLS[char.(string)] {
-			lexer.appendToken(Token{
+			lexer.appendToken(tokens, Token{
 				tokenType: SYMBOL,
 				lexeme:    char.(string),
 			})
@@ -203,7 +202,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 
 			word := strings.Join(chars, "")
 
-			lexer.appendToken(Token{
+			lexer.appendToken(tokens, Token{
 				tokenType: STRING_CONSTANT,
 				lexeme:    fmt.Sprintf(`"%s"`, word),
 			})
@@ -225,7 +224,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			} else {
 				token.tokenType = IDENTIFIER
 			}
-			lexer.appendToken(token)
+			lexer.appendToken(tokens, token)
 		} else if regexp.MustCompile(`\d`).MatchString(char.(string)) {
 			chars := []string{char.(string)}
 			char = lexer.read()
@@ -234,7 +233,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 				char = lexer.read()
 			}
 			word := strings.Join(chars, "")
-			lexer.appendToken(Token{
+			lexer.appendToken(tokens, Token{
 				tokenType: INTEGER_CONSTANT,
 				lexeme:    word,
 			})
@@ -242,5 +241,5 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			char = lexer.read()
 		}
 	}
-	return lexer.tokens
+	return tokens
 }
