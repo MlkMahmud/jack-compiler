@@ -222,6 +222,28 @@ func (parser *Parser) parseDoStatement() {
 	parser.write("/doStatement", nil)
 }
 
+func (parser *Parser) parseIfStatement() {
+	// GRAMMAR: 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+	parser.write("ifStatement", nil)
+
+	parser.parseToken([]string{"if"})
+	parser.parseToken([]string{"("})
+	parser.parseExpression()
+	parser.parseToken([]string{")"})
+	parser.parseToken([]string{"{"})
+	parser.parseStatements()
+	parser.parseToken([]string{"}"})
+
+	if isKeyword(parser.peekNextToken(), []string{"else"}) {
+		parser.parseToken([]string{"else"})
+		parser.parseToken([]string{"{"})
+		parser.parseStatements()
+		parser.parseToken([]string{"}"})
+	}
+
+	parser.write("/ifStatement", nil)
+}
+
 func (parser *Parser) parseLetStatement() {
 	// GRAMMAR: 'let' varName ('[' expression ']')? '=' expression ';'
 	parser.write("letStatement", nil)
@@ -258,7 +280,7 @@ func (parser *Parser) parseStatements() {
 		case "do":
 			parser.parseDoStatement()
 		case "if":
-			// parseIfStatement
+			parser.parseIfStatement()
 		case "let":
 			parser.parseLetStatement()
 		case "return":
