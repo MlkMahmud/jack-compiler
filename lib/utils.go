@@ -4,15 +4,6 @@ import (
 	"path/filepath"
 )
 
-type CompilerError struct {
-	errorMessage string
-}
-
-func (e *CompilerError) Error() string {
-	return e.errorMessage
-}
-
-
 func isKeyword(token Token, lexemes []string) bool {
 	for _, val := range lexemes {
 		if token.tokenType == KEYWORD && token.lexeme == val {
@@ -46,6 +37,6 @@ func writeSymbol(lexeme string) string {
 
 func replaceFileExt(filename, ext string) string {
 	extension := filepath.Ext(filename)
-	basename := filename[0: len(filename) - len(extension)]
+	basename := filename[0 : len(filename)-len(extension)]
 	return basename + ext
 }

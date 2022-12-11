@@ -15,6 +15,21 @@ import (
 	parse tree according to the rules of Jack's grammar.
 */
 
+type ParserErrorType int
+
+const (
+	UNEXPECTED_TOKEN ParserErrorType = iota
+	UNEXPECTED_END_OF_INPUT
+)
+
+type ParserError struct {
+	errorMessage string
+}
+
+func (e *ParserError) Error() string {
+	return e.errorMessage
+}
+
 type Parser struct {
 	outFile *os.File
 	tokens  *list.List
@@ -42,26 +57,51 @@ func (parser *Parser) write(tag string, lexeme any) {
 	}
 }
 
-func (parser *Parser) throwSyntaxError(token Token) {
+func (parser *Parser) emitError(errorType ParserErrorType, token any) {
 	srcFile := replaceFileExt(parser.outFile.Name(), ".jack")
-	errorMessage := fmt.Sprintf(
-		"(%s):[%d:%d]: syntax error: unexpected token '%s'\n",
-		srcFile,
-		token.lineNum,
-		token.colNum,
-		token.lexeme,
-	)
-	panic(&CompilerError{errorMessage})
+	var errorMessage string
+
+	switch errorType {
+	case UNEXPECTED_TOKEN:
+		errorMessage = fmt.Sprintf(
+			"(%s):[%d:%d]: Syntax error: unexpected token '%s'\n",
+			srcFile,
+			token.(Token).lineNum,
+			token.(Token).colNum,
+			token.(Token).lexeme,
+		)
+		
+	case UNEXPECTED_END_OF_INPUT:
+		errorMessage = fmt.Sprintf(
+			"(%s): Syntax error: unexpected end of input\n",
+			srcFile,
+		)
+
+	default: 
+		panic(fmt.Sprintf("Error Type: [%d] is not a valid parser error", errorType))
+	}
+
+	panic(&ParserError{errorMessage})
 }
 
 func (parser *Parser) getNextToken() Token {
 	item := parser.tokens.Front()
+
+	if item == nil {
+		parser.emitError(UNEXPECTED_END_OF_INPUT, nil)
+	}
+
 	parser.tokens.Remove(item)
 	return item.Value.(Token)
 }
 
 func (parser *Parser) peekNextToken() Token {
 	item := parser.tokens.Front()
+
+	if item == nil {
+		parser.emitError(UNEXPECTED_END_OF_INPUT, nil)
+	}
+
 	return item.Value.(Token)
 }
 
@@ -99,7 +139,7 @@ func (parser *Parser) parseToken(terminals []string) {
 			}
 		}
 	}
-	parser.throwSyntaxError(token)
+	parser.emitError(UNEXPECTED_TOKEN, token)
 }
 
 func (parser *Parser) parseParameterList() {
@@ -166,7 +206,7 @@ func (parser *Parser) parseTerm() {
 		parser.parseToken([]string{"-", "~"})
 		parser.parseTerm()
 	} else {
-		parser.throwSyntaxError(token)
+		parser.emitError(UNEXPECTED_TOKEN, token)
 	}
 	parser.write("/term", nil)
 }
@@ -303,7 +343,7 @@ func (parser *Parser) parseStatements() {
 		case "while":
 			parser.parseWhileStatement()
 		default:
-			parser.throwSyntaxError(token)
+			parser.emitError(UNEXPECTED_TOKEN, token)
 		}
 	}
 	parser.write("/statements", nil)
@@ -359,6 +399,11 @@ func (parser *Parser) parseClassVarDec() {
 }
 
 func (parser *Parser) Parse(tokens *list.List, outFile string) {
+	// If the tokens list is empty, we're dealing with an empty file.
+	if (tokens.Len() < 1) {
+		return
+	}
+
 	file, err := os.Create(outFile)
 	if err != nil {
 		log.Fatal(err)
@@ -371,8 +416,8 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 		}
 
 		if r := recover(); r != nil {
-			var compilerError *CompilerError
-			if errors.As(r.(error), &compilerError) {
+			var parserError *ParserError
+			if errors.As(r.(error), &parserError) {
 				fmt.Println(r)
 			} else {
 				debug.PrintStack()
@@ -395,7 +440,7 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 		} else if isKeyword(nextToken, []string{"constructor", "function", "method"}) {
 			parser.parseSubroutineDec()
 		} else {
-			parser.throwSyntaxError(nextToken)
+			parser.emitError(UNEXPECTED_TOKEN, nextToken)
 		}
 	}
 
