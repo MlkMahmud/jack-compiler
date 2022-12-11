@@ -173,6 +173,9 @@ func (parser *Parser) parseTerm() {
 
 func (parser *Parser) parseExpression() {
 	// GRAMMAR: term (op term)*
+	if isSymbol(parser.peekNextToken(), []string{";", "]", ")"}) {
+		return;
+	}
 	parser.write("expression", nil)
 	parser.parseTerm()
 	for nextToken := parser.peekNextToken(); isSymbol(nextToken, []string{"+", "-", "*", "/", "&", "|", "<", ">", "="}); nextToken = parser.peekNextToken() {
@@ -219,15 +222,30 @@ func (parser *Parser) parseDoStatement() {
 	parser.write("/doStatement", nil)
 }
 
+func (parser *Parser) parseLetStatement() {
+	// GRAMMAR: 'let' varName ('[' expression ']')? '=' expression ';'
+	parser.write("letStatement", nil)
+	parser.parseToken([]string{"let"})
+	parser.parseToken([]string{"varName"})
+	
+	// If the next token is a left bracket "[". We're dealing with an array index assignment.
+	if isSymbol(parser.peekNextToken(), []string{"["}) {
+		parser.parseToken([]string{"["})
+		parser.parseExpression()
+		parser.parseToken([]string{"]"})
+	}
+
+	parser.parseToken([]string{"="})
+	parser.parseExpression()
+	parser.parseToken([]string{";"})
+	parser.write("/letStatement", nil)
+}
+
 func (parser *Parser) parseReturnStatement() {
 	// GRAMMAR: 'return' expression? ';'
 	parser.write("returnStatement", nil)
 	parser.parseToken([]string{"return"})
-	
-	if !isSymbol(parser.peekNextToken(), []string{";"}) {
-		parser.parseExpression()
-	}
-
+	parser.parseExpression()
 	parser.parseToken([]string{";"})
 	parser.write("/returnStatement", nil)
 }
@@ -242,7 +260,7 @@ func (parser *Parser) parseStatements() {
 		case "if":
 			// parseIfStatement
 		case "let":
-			// parseLetStatement
+			parser.parseLetStatement()
 		case "return":
 			parser.parseReturnStatement()
 		case "while":
