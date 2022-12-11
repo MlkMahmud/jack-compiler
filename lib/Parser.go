@@ -30,7 +30,7 @@ func (parser *Parser) write(tag string, lexeme any) {
 		str = fmt.Sprintf("<%s>\n", tag)
 	} else {
 		str = fmt.Sprintf(
-			"<%s>%s</%s>\n",
+			"<%s> %s </%s>\n",
 			tag,
 			writeSymbol(lexeme.(string)),
 			tag,
@@ -272,6 +272,21 @@ func (parser *Parser) parseReturnStatement() {
 	parser.write("/returnStatement", nil)
 }
 
+func (parser *Parser) parseWhileStatement() {
+	// GRAMMAR: 'while' '(' expression ')' '{' statements '}'
+	parser.write("whileStatement", nil)
+	
+	parser.parseToken([]string{"while"})
+	parser.parseToken([]string{"("})
+	parser.parseExpression()
+	parser.parseToken([]string{")"})
+	parser.parseToken([]string{"{"})
+	parser.parseStatements()
+	parser.parseToken([]string{"}"})
+
+	parser.write("/whileStatement", nil)
+}
+
 func (parser *Parser) parseStatements() {
 	parser.write("statements", nil)
 
@@ -286,7 +301,7 @@ func (parser *Parser) parseStatements() {
 		case "return":
 			parser.parseReturnStatement()
 		case "while":
-			// parseWhileStatement
+			parser.parseWhileStatement()
 		default:
 			parser.throwSyntaxError(token)
 		}
