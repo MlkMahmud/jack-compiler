@@ -175,7 +175,7 @@ func (parser *Parser) parseExpression() {
 	// GRAMMAR: term (op term)*
 	parser.write("expression", nil)
 	parser.parseTerm()
-	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, []string{",", ")", "]"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); isSymbol(nextToken, []string{"+", "-", "*", "/", "&", "|", "<", ">", "="}); nextToken = parser.peekNextToken() {
 		parser.parseToken([]string{"+", "-", "*", "/", "&", "|", "<", ">", "="})
 		parser.parseTerm()
 	}
@@ -219,6 +219,19 @@ func (parser *Parser) parseDoStatement() {
 	parser.write("/doStatement", nil)
 }
 
+func (parser *Parser) parseReturnStatement() {
+	// GRAMMAR: 'return' expression? ';'
+	parser.write("returnStatement", nil)
+	parser.parseToken([]string{"return"})
+	
+	if !isSymbol(parser.peekNextToken(), []string{";"}) {
+		parser.parseExpression()
+	}
+
+	parser.parseToken([]string{";"})
+	parser.write("/returnStatement", nil)
+}
+
 func (parser *Parser) parseStatements() {
 	parser.write("statements", nil)
 
@@ -231,7 +244,7 @@ func (parser *Parser) parseStatements() {
 		case "let":
 			// parseLetStatement
 		case "return":
-			// parseReturnStatement
+			parser.parseReturnStatement()
 		case "while":
 			// parseWhileStatement
 		default:
