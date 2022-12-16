@@ -1,4 +1,4 @@
-package lib
+package main
 
 import (
 	"container/list"
@@ -143,6 +143,7 @@ func (parser *Parser) parseToken(terminals []string) {
 }
 
 func (parser *Parser) parseParameterList() {
+	// GRAMMAR: ((type varName), (',' type varName)*)?
 	parser.write("parameterList", nil)
 
 	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
@@ -157,6 +158,7 @@ func (parser *Parser) parseParameterList() {
 }
 
 func (parser *Parser) parseVarDec() {
+	// GRAMMAR: 'var' type varName (',' varName)* ';'
 	parser.write("varDec", nil)
 	parser.parseToken([]string{"var"})
 	parser.parseToken([]string{"boolean", "char", "className", "int"})
@@ -328,6 +330,7 @@ func (parser *Parser) parseWhileStatement() {
 }
 
 func (parser *Parser) parseStatements() {
+	// GRAMMAR: statement*
 	parser.write("statements", nil)
 
 	for token := parser.peekNextToken(); !isSymbol(token, []string{"}"}); token = parser.peekNextToken() {
@@ -350,6 +353,7 @@ func (parser *Parser) parseStatements() {
 }
 
 func (parser *Parser) parseSubroutineBody() {
+	// GRAMMAR: '{' varDec* statements '}'
 	parser.write("subroutineBody", nil)
 	parser.parseToken([]string{"{"})
 
@@ -365,6 +369,7 @@ func (parser *Parser) parseSubroutineBody() {
 }
 
 func (parser *Parser) parseSubroutineDec() {
+	// GRAMMAR: ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
 	parser.write("subroutineDec", nil)
 	parser.parseToken([]string{"constructor", "function", "method"})
 	parser.parseToken([]string{"boolean", "char", "className", "int", "void"})
@@ -378,6 +383,7 @@ func (parser *Parser) parseSubroutineDec() {
 }
 
 func (parser *Parser) parseClassVarDec() {
+	// GRAMMAR: ('static' | 'field') ('int' | 'boolean' | 'char' | className) varName (',' varName)* ';'
 	parser.write("classVarDec", nil)
 
 	parser.parseToken([]string{"field", "static"})

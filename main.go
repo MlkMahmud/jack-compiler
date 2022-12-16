@@ -5,13 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"jack-compiler/lib"
 )
 
 func printHelpMessage() {
 	log.SetFlags(0)
-	log.Fatalln(("usage:\n go run main.go .\t\t\tCompiles all the .jack files in the current directory\n go run main.go <src.jack>\t\tCompiles the specified .jack file\n go run main.go src/\t\t\tCompiles all the .jack files in the specified directory"))
+	log.Fatalln(("usage:\n go run . .\t\t\tCompiles all the .jack files in the current directory\n go run . <src.jack>\t\tCompiles the specified .jack file\n go run . src/\t\t\tCompiles all the .jack files in the specified directory"))
 }
 
 func main() {
@@ -19,7 +17,7 @@ func main() {
 		printHelpMessage()
 	}
 
-	JackAnalyzer := lib.NewAnalyzer()
+	JackAnalyzer := NewAnalyzer()
 	src := os.Args[1]
 	stat, err := os.Stat(src)
 	if err != nil {
