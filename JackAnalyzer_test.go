@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func ReadTextContent(filename string) string {
+func stripLineBreakAndTabCharacters(filename string) string {
 	file, _ := os.Open(filename)
 	bytes, err := io.ReadAll(file)
 
@@ -38,7 +38,7 @@ func TestJackAnalyzer(t *testing.T) {
 
 			cmpFile := fmt.Sprintf("testdata/xml/%s", info.Name())
 
-			if ReadTextContent(cmpFile) != ReadTextContent(outFile) {
+			if stripLineBreakAndTabCharacters(cmpFile) != stripLineBreakAndTabCharacters(outFile) {
 				t.Errorf("Expected content of %s to match content of %s", outFile, cmpFile)
 			}
 		})
