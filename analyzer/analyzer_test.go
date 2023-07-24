@@ -1,4 +1,4 @@
-package main
+package analyzer_test
 
 import (
 	"fmt"
@@ -7,6 +7,9 @@ import (
 	"os"
 	"regexp"
 	"testing"
+
+	. "github.com/MlkMahmud/jack-compiler/analyzer"
+	. "github.com/MlkMahmud/jack-compiler/helpers"
 )
 
 func stripLineBreakAndTabCharacters(filename string) string {
@@ -28,7 +31,7 @@ func TestJackAnalyzer(t *testing.T) {
 
 	for _, file := range files {
 		t.Run(file, func(t *testing.T) {
-			outFile := replaceFileExt(file, ".xml")
+			outFile := ReplaceFileExt(file, ".xml")
 			jackAnalyzer.Run(file)
 
 			info, err := os.Stat(outFile)

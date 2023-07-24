@@ -1,4 +1,4 @@
-package main
+package lexer
 
 import (
 	"container/list"
@@ -8,38 +8,11 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/MlkMahmud/jack-compiler/constants"
 )
 
-type TokenType int
 
-func (tokenType TokenType) toString() string {
-	return []string{
-		"identifier", "integerConstant", "keyword", "stringConstant", "symbol",
-	}[tokenType]
-}
-
-const (
-	IDENTIFIER TokenType = iota
-	INTEGER_CONSTANT
-	KEYWORD
-	STRING_CONSTANT
-	SYMBOL
-)
-
-var KEYWORDS = map[string]bool{
-	"class": true, "constructor": true, "method": true,
-	"function": true, "int": true, "boolean": true,
-	"char": true, "void": true, "var": true, "static": true,
-	"field": true, "let": true, "do": true, "if": true,
-	"else": true, "while": true, "return": true, "true": true,
-	"false": true, "null": true, "this": true,
-}
-
-var SYMBOLS = map[string]bool{
-	"(": true, ")": true, "{": true, "}": true, "[": true, "]": true, "/": true,
-	"-": true, "+": true, "*": true, ",": true, ".": true, "=": true, ";": true,
-	"&": true, "|": true, "<": true, ">": true, "~": true,
-}
 
 type Lexer struct {
 	colNum  int
@@ -47,25 +20,19 @@ type Lexer struct {
 	source  *os.File
 }
 
-type Token struct {
-	colNum    int
-	lexeme    string
-	lineNum   int
-	tokenType TokenType
-}
 
 func NewLexer() *Lexer {
 	return new(Lexer)
 }
 
-func (lexer *Lexer) appendToken(tokens *list.List, entry Token) {
-	if len(entry.lexeme) > 1 {
+func (lexer *Lexer) appendToken(tokens *list.List, entry constants.Token) {
+	if len(entry.Lexeme) > 1 {
 		// Set the current token's colNum to the position of its first character.
-		entry.colNum = lexer.colNum - len(entry.lexeme)
+		entry.ColNum = lexer.colNum - len(entry.Lexeme)
 	} else {
-		entry.colNum = lexer.colNum
+		entry.ColNum = lexer.colNum
 	}
-	entry.lineNum = lexer.lineNum
+	entry.LineNum = lexer.lineNum
 	tokens.PushBack(entry)
 }
 
@@ -161,16 +128,16 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 				char = lexer.read()
 			} else {
 				// This is a division symbol
-				lexer.appendToken(tokens, Token{
-					tokenType: SYMBOL,
-					lexeme:    "/",
+				lexer.appendToken(tokens, constants.Token{
+					TokenType: constants.SYMBOL,
+					Lexeme:    "/",
 				})
 				char = nextChar
 			}
-		} else if SYMBOLS[char.(string)] {
-			lexer.appendToken(tokens, Token{
-				tokenType: SYMBOL,
-				lexeme:    char.(string),
+		} else if constants.SYMBOLS[char.(string)] {
+			lexer.appendToken(tokens, constants.Token{
+				TokenType: constants.SYMBOL,
+				Lexeme:    char.(string),
 			})
 			char = lexer.read()
 		} else if char == `"` {
@@ -202,9 +169,9 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 
 			word := strings.Join(chars, "")
 
-			lexer.appendToken(tokens, Token{
-				tokenType: STRING_CONSTANT,
-				lexeme:    word,
+			lexer.appendToken(tokens, constants.Token{
+				TokenType: constants.STRING_CONSTANT,
+				Lexeme:    word,
 			})
 
 			char = lexer.read()
@@ -218,11 +185,11 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			}
 
 			word := strings.Join(chars, "")
-			token := Token{lexeme: word}
-			if KEYWORDS[word] {
-				token.tokenType = KEYWORD
+			token := constants.Token{Lexeme: word}
+			if constants.KEYWORDS[word] {
+				token.TokenType = constants.KEYWORD
 			} else {
-				token.tokenType = IDENTIFIER
+				token.TokenType = constants.IDENTIFIER
 			}
 			lexer.appendToken(tokens, token)
 		} else if regexp.MustCompile(`\d`).MatchString(char.(string)) {
@@ -233,9 +200,9 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 				char = lexer.read()
 			}
 			word := strings.Join(chars, "")
-			lexer.appendToken(tokens, Token{
-				tokenType: INTEGER_CONSTANT,
-				lexeme:    word,
+			lexer.appendToken(tokens, constants.Token{
+				TokenType: constants.INTEGER_CONSTANT,
+				Lexeme:    word,
 			})
 		} else {
 			char = lexer.read()

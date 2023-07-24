@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/MlkMahmud/jack-compiler/analyzer"
 )
 
 func printHelpMessage() {
@@ -17,7 +19,7 @@ func main() {
 		printHelpMessage()
 	}
 
-	JackAnalyzer := NewAnalyzer()
+	JackAnalyzer := analyzer.NewAnalyzer()
 	src := os.Args[1]
 	stat, err := os.Stat(src)
 	if err != nil {

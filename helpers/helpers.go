@@ -1,28 +1,30 @@
-package main
+package helpers
 
 import (
 	"path/filepath"
+
+	"github.com/MlkMahmud/jack-compiler/constants"
 )
 
-func isKeyword(token Token, lexemes []string) bool {
+func IsKeyword(token constants.Token, lexemes []string) bool {
 	for _, val := range lexemes {
-		if token.tokenType == KEYWORD && token.lexeme == val {
+		if token.TokenType == constants.KEYWORD && token.Lexeme == val {
 			return true
 		}
 	}
 	return false
 }
 
-func isSymbol(token Token, lexemes []string) bool {
+func IsSymbol(token constants.Token, lexemes []string) bool {
 	for _, val := range lexemes {
-		if token.tokenType == SYMBOL && token.lexeme == val {
+		if token.TokenType == constants.SYMBOL && token.Lexeme == val {
 			return true
 		}
 	}
 	return false
 }
 
-func writeSymbol(lexeme string) string {
+func WriteSymbol(lexeme string) string {
 	switch lexeme {
 	case "<":
 		return "&lt;"
@@ -35,7 +37,7 @@ func writeSymbol(lexeme string) string {
 	}
 }
 
-func replaceFileExt(filename, ext string) string {
+func ReplaceFileExt(filename, ext string) string {
 	extension := filepath.Ext(filename)
 	basename := filename[0 : len(filename)-len(extension)]
 	return basename + ext

@@ -1,4 +1,4 @@
-package main
+package parser
 
 import (
 	"container/list"
@@ -7,6 +7,9 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
+
+	"github.com/MlkMahmud/jack-compiler/constants"
+	"github.com/MlkMahmud/jack-compiler/helpers"
 )
 
 /*
@@ -47,7 +50,7 @@ func (parser *Parser) write(tag string, lexeme any) {
 		str = fmt.Sprintf(
 			"<%s> %s </%s>\n",
 			tag,
-			writeSymbol(lexeme.(string)),
+			helpers.WriteSymbol(lexeme.(string)),
 			tag,
 		)
 	}
@@ -58,7 +61,7 @@ func (parser *Parser) write(tag string, lexeme any) {
 }
 
 func (parser *Parser) emitError(errorType ParserErrorType, token any) {
-	srcFile := replaceFileExt(parser.outFile.Name(), ".jack")
+	srcFile := helpers.ReplaceFileExt(parser.outFile.Name(), ".jack")
 	var errorMessage string
 
 	switch errorType {
@@ -66,9 +69,9 @@ func (parser *Parser) emitError(errorType ParserErrorType, token any) {
 		errorMessage = fmt.Sprintf(
 			"(%s):[%d:%d]: Syntax error: unexpected token '%s'\n",
 			srcFile,
-			token.(Token).lineNum,
-			token.(Token).colNum,
-			token.(Token).lexeme,
+			token.(constants.Token).LineNum,
+			token.(constants.Token).ColNum,
+			token.(constants.Token).Lexeme,
 		)
 		
 	case UNEXPECTED_END_OF_INPUT:
@@ -84,7 +87,7 @@ func (parser *Parser) emitError(errorType ParserErrorType, token any) {
 	panic(&ParserError{errorMessage})
 }
 
-func (parser *Parser) getNextToken() Token {
+func (parser *Parser) getNextToken() constants.Token {
 	item := parser.tokens.Front()
 
 	if item == nil {
@@ -92,48 +95,48 @@ func (parser *Parser) getNextToken() Token {
 	}
 
 	parser.tokens.Remove(item)
-	return item.Value.(Token)
+	return item.Value.(constants.Token)
 }
 
-func (parser *Parser) peekNextToken() Token {
+func (parser *Parser) peekNextToken() constants.Token {
 	item := parser.tokens.Front()
 
 	if item == nil {
 		parser.emitError(UNEXPECTED_END_OF_INPUT, nil)
 	}
 
-	return item.Value.(Token)
+	return item.Value.(constants.Token)
 }
 
 func (parser *Parser) parseToken(terminals []string) {
 	token := parser.getNextToken()
 
-	switch token.tokenType {
-	case KEYWORD, SYMBOL:
+	switch token.TokenType {
+	case constants.KEYWORD, constants.SYMBOL:
 		{
 			for _, val := range terminals {
-				if val == token.lexeme {
-					parser.write(token.tokenType.toString(), token.lexeme)
+				if val == token.Lexeme {
+					parser.write(token.TokenType.ToString(), token.Lexeme)
 					return
 				}
 			}
 		}
 
-	case INTEGER_CONSTANT, STRING_CONSTANT:
+	case constants.INTEGER_CONSTANT, constants.STRING_CONSTANT:
 		{
 			for _, val := range terminals {
-				if val == token.tokenType.toString() {
-					parser.write(token.tokenType.toString(), token.lexeme)
+				if val == token.TokenType.ToString() {
+					parser.write(token.TokenType.ToString(), token.Lexeme)
 					return
 				}
 			}
 		}
 
-	case IDENTIFIER:
+	case constants.IDENTIFIER:
 		{
 			for _, val := range terminals {
 				if val == "className" || val == "subroutineName" || val == "varName" {
-					parser.write(token.tokenType.toString(), token.lexeme)
+					parser.write(token.TokenType.ToString(), token.Lexeme)
 					return
 				}
 			}
@@ -146,10 +149,10 @@ func (parser *Parser) parseParameterList() {
 	// GRAMMAR: ((type varName), (',' type varName)*)?
 	parser.write("parameterList", nil)
 
-	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
 		parser.parseToken([]string{"boolean", "char", "className", "int"})
 		parser.parseToken([]string{"varName"})
-		if isSymbol(parser.peekNextToken(), []string{","}) {
+		if helpers.IsSymbol(parser.peekNextToken(), []string{","}) {
 			parser.parseToken([]string{","})
 		}
 	}
@@ -164,7 +167,7 @@ func (parser *Parser) parseVarDec() {
 	parser.parseToken([]string{"boolean", "char", "className", "int"})
 	parser.parseToken([]string{"varName"})
 
-	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
 		parser.parseToken([]string{","})
 		parser.parseToken([]string{"varName"})
 	}
@@ -178,24 +181,24 @@ func (parser *Parser) parseTerm() {
 	token := parser.peekNextToken()
 
 	// An expression enclosed in parentheses
-	if isSymbol(token, []string{"("}) {
+	if helpers.IsSymbol(token, []string{"("}) {
 		parser.parseToken([]string{"("})
 		parser.parseExpression()
 		parser.parseToken([]string{")"})
-	} else if token.tokenType == INTEGER_CONSTANT ||
-		token.tokenType == STRING_CONSTANT ||
-		token.tokenType == KEYWORD {
+	} else if token.TokenType == constants.INTEGER_CONSTANT ||
+		token.TokenType == constants.STRING_CONSTANT ||
+		token.TokenType == constants.KEYWORD {
 		parser.parseToken([]string{"integerConstant", "stringConstant", "true", "false", "null", "this"})
-	} else if token.tokenType == IDENTIFIER {
+	} else if token.TokenType == constants.IDENTIFIER {
 		parser.parseToken([]string{"varName"})
 		// If the next token is a left bracket. We're dealing with an array indexing expression.
-		if isSymbol(parser.peekNextToken(), []string{"["}) {
+		if helpers.IsSymbol(parser.peekNextToken(), []string{"["}) {
 			parser.parseToken([]string{"["})
 			parser.parseExpression()
 			parser.parseToken([]string{"]"})
 			// If the next token is a left parenthesis or a period symbol. We're dealing with a subroutine call.
-		} else if isSymbol(parser.peekNextToken(), []string{"(", "."}) {
-			if isSymbol(parser.peekNextToken(), []string{"."}) {
+		} else if helpers.IsSymbol(parser.peekNextToken(), []string{"(", "."}) {
+			if helpers.IsSymbol(parser.peekNextToken(), []string{"."}) {
 				parser.parseToken([]string{"."})
 				parser.parseToken([]string{"subroutineName"})
 			}
@@ -203,7 +206,7 @@ func (parser *Parser) parseTerm() {
 			parser.parseExpressionList()
 			parser.parseToken([]string{")"})
 		}
-	} else if isSymbol(token, []string{"-", "~"}) {
+	} else if helpers.IsSymbol(token, []string{"-", "~"}) {
 		// If the token is a unary symbol it must be followed by a term
 		parser.parseToken([]string{"-", "~"})
 		parser.parseTerm()
@@ -215,12 +218,12 @@ func (parser *Parser) parseTerm() {
 
 func (parser *Parser) parseExpression() {
 	// GRAMMAR: term (op term)*
-	if isSymbol(parser.peekNextToken(), []string{";", "]", ")"}) {
+	if helpers.IsSymbol(parser.peekNextToken(), []string{";", "]", ")"}) {
 		return;
 	}
 	parser.write("expression", nil)
 	parser.parseTerm()
-	for nextToken := parser.peekNextToken(); isSymbol(nextToken, []string{"+", "-", "*", "/", "&", "|", "<", ">", "="}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); helpers.IsSymbol(nextToken, []string{"+", "-", "*", "/", "&", "|", "<", ">", "="}); nextToken = parser.peekNextToken() {
 		parser.parseToken([]string{"+", "-", "*", "/", "&", "|", "<", ">", "="})
 		parser.parseTerm()
 	}
@@ -231,10 +234,10 @@ func (parser *Parser) parseExpressionList() {
 	// GRAMMAR: (expression (',' expression)*)?
 	parser.write("expressionList", nil)
 
-	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
 		parser.parseExpression()
 
-		if isSymbol(parser.peekNextToken(), []string{","}) {
+		if helpers.IsSymbol(parser.peekNextToken(), []string{","}) {
 			parser.parseToken([]string{","})
 		}
 	}
@@ -245,7 +248,7 @@ func (parser *Parser) parseSubroutineCall() {
 	// GRAMMAR: subroutineName '(' expressionList ')'
 	// GRAMMAR: (className | varName) '.' subroutineName '(' expressionList ')'
 	parser.parseToken([]string{"className", "subroutineName", "varName"})
-	if isSymbol(parser.peekNextToken(), []string{"."}) {
+	if helpers.IsSymbol(parser.peekNextToken(), []string{"."}) {
 		parser.parseToken([]string{"."})
 		parser.parseToken([]string{"subroutineName"})
 	}
@@ -276,7 +279,7 @@ func (parser *Parser) parseIfStatement() {
 	parser.parseStatements()
 	parser.parseToken([]string{"}"})
 
-	if isKeyword(parser.peekNextToken(), []string{"else"}) {
+	if helpers.IsKeyword(parser.peekNextToken(), []string{"else"}) {
 		parser.parseToken([]string{"else"})
 		parser.parseToken([]string{"{"})
 		parser.parseStatements()
@@ -293,7 +296,7 @@ func (parser *Parser) parseLetStatement() {
 	parser.parseToken([]string{"varName"})
 	
 	// If the next token is a left bracket "[". We're dealing with an array index assignment.
-	if isSymbol(parser.peekNextToken(), []string{"["}) {
+	if helpers.IsSymbol(parser.peekNextToken(), []string{"["}) {
 		parser.parseToken([]string{"["})
 		parser.parseExpression()
 		parser.parseToken([]string{"]"})
@@ -333,8 +336,8 @@ func (parser *Parser) parseStatements() {
 	// GRAMMAR: statement*
 	parser.write("statements", nil)
 
-	for token := parser.peekNextToken(); !isSymbol(token, []string{"}"}); token = parser.peekNextToken() {
-		switch token.lexeme {
+	for token := parser.peekNextToken(); !helpers.IsSymbol(token, []string{"}"}); token = parser.peekNextToken() {
+		switch token.Lexeme {
 		case "do":
 			parser.parseDoStatement()
 		case "if":
@@ -357,8 +360,8 @@ func (parser *Parser) parseSubroutineBody() {
 	parser.write("subroutineBody", nil)
 	parser.parseToken([]string{"{"})
 
-	for end := parser.peekNextToken(); !isSymbol(end, []string{"}"}); end = parser.peekNextToken() {
-		if isKeyword(end, []string{"var"}) {
+	for end := parser.peekNextToken(); !helpers.IsSymbol(end, []string{"}"}); end = parser.peekNextToken() {
+		if helpers.IsKeyword(end, []string{"var"}) {
 			parser.parseVarDec()
 		} else {
 			parser.parseStatements()
@@ -393,7 +396,7 @@ func (parser *Parser) parseClassVarDec() {
 	nextToken := parser.peekNextToken()
 
 	// Check if it's a multi var declaration.
-	for !isSymbol(nextToken, []string{";"}) {
+	for !helpers.IsSymbol(nextToken, []string{";"}) {
 		parser.parseToken([]string{","})
 		parser.parseToken([]string{"varName"})
 
@@ -440,10 +443,10 @@ func (parser *Parser) Parse(tokens *list.List, outFile string) {
 	parser.parseToken([]string{"className"})
 	parser.parseToken([]string{"{"})
 
-	for nextToken := parser.peekNextToken(); !isSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
-		if isKeyword(nextToken, []string{"field", "static"}) {
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
+		if helpers.IsKeyword(nextToken, []string{"field", "static"}) {
 			parser.parseClassVarDec()
-		} else if isKeyword(nextToken, []string{"constructor", "function", "method"}) {
+		} else if helpers.IsKeyword(nextToken, []string{"constructor", "function", "method"}) {
 			parser.parseSubroutineDec()
 		} else {
 			parser.emitError(UNEXPECTED_TOKEN, nextToken)
