@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"container/list"
 	"errors"
 	"fmt"
 	"log"
@@ -35,7 +34,7 @@ func (e *ParserError) Error() string {
 
 type Parser struct {
 	outFile *os.File
-	tokens  *list.List
+	tokens  []constants.Token
 }
 
 func NewParser() *Parser {
@@ -88,24 +87,21 @@ func (parser *Parser) emitError(errorType ParserErrorType, token any) {
 }
 
 func (parser *Parser) getNextToken() constants.Token {
-	item := parser.tokens.Front()
-
-	if item == nil {
+	if len(parser.tokens) == 0 {
 		parser.emitError(UNEXPECTED_END_OF_INPUT, nil)
 	}
 
-	parser.tokens.Remove(item)
-	return item.Value.(constants.Token)
+	token := parser.tokens[0]
+	parser.tokens = parser.tokens[1:]
+	return token
 }
 
 func (parser *Parser) peekNextToken() constants.Token {
-	item := parser.tokens.Front()
-
-	if item == nil {
+	if len(parser.tokens) == 0 {
 		parser.emitError(UNEXPECTED_END_OF_INPUT, nil)
 	}
 
-	return item.Value.(constants.Token)
+	return parser.tokens[0]
 }
 
 func (parser *Parser) parseToken(terminals []string) {
@@ -407,9 +403,9 @@ func (parser *Parser) parseClassVarDec() {
 	parser.write("/classVarDec", nil)
 }
 
-func (parser *Parser) Parse(tokens *list.List, outFile string) {
+func (parser *Parser) Parse(tokens []constants.Token, outFile string) {
 	// If the tokens list is empty, we're dealing with an empty file.
-	if (tokens.Len() < 1) {
+	if (len(tokens) < 1) {
 		return
 	}
 

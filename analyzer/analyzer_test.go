@@ -1,16 +1,18 @@
 package analyzer_test
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
+	"path"
 	"regexp"
+	"strings"
 	"testing"
 
 	. "github.com/MlkMahmud/jack-compiler/analyzer"
-	. "github.com/MlkMahmud/jack-compiler/helpers"
 )
+
+const TEST_DATA_PATH = "../testdata"
 
 func stripLineBreakAndTabCharacters(filename string) string {
 	file, _ := os.Open(filename)
@@ -26,23 +28,19 @@ func stripLineBreakAndTabCharacters(filename string) string {
 }
 
 func TestJackAnalyzer(t *testing.T) {
-	files := []string{"testdata/Array.jack", "testdata/Square.jack", "testdata/SquareGame.jack"}
+	files := []string{"Array", "Square", "SquareGame"}
 	jackAnalyzer := NewAnalyzer()
 
 	for _, file := range files {
 		t.Run(file, func(t *testing.T) {
-			outFile := ReplaceFileExt(file, ".xml")
-			jackAnalyzer.Run(file)
+			srcFilePath := path.Join(TEST_DATA_PATH, strings.Join([]string{file, "jack"}, "."))
+			outFilePath := path.Join(TEST_DATA_PATH, strings.Join([]string{file, "xml"}, "."))
+			cmpFilePath := path.Join(TEST_DATA_PATH, "expected", strings.Join([]string{file, "xml"}, "."))
 
-			info, err := os.Stat(outFile)
-			if err != nil {
-				t.Error(err)
-			}
+			jackAnalyzer.Run(srcFilePath)
 
-			cmpFile := fmt.Sprintf("testdata/xml/%s", info.Name())
-
-			if stripLineBreakAndTabCharacters(cmpFile) != stripLineBreakAndTabCharacters(outFile) {
-				t.Errorf("Expected content of %s to match content of %s", outFile, cmpFile)
+			if stripLineBreakAndTabCharacters(cmpFilePath) != stripLineBreakAndTabCharacters(outFilePath) {
+				t.Errorf("Expected content of %s to match content of %s", outFilePath, cmpFilePath)
 			}
 		})
 	}

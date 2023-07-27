@@ -13,7 +13,7 @@ import (
 	. "github.com/MlkMahmud/jack-compiler/lexer"
 )
 
-const testdataPath = "../testdata/"
+const TEST_DATA_PATH = "../testdata"
 
 func readFileContent(filename string) string {
 	file, _ := os.Open(filename)
@@ -53,9 +53,9 @@ func TestLexer(t *testing.T) {
 
 	for _, file := range files {
 		t.Run(file, func(t *testing.T) {
-			filePath := path.Join(testdataPath, fmt.Sprintf("%s%s", file, ".jack"))
-			cmpFilePath := path.Join(testdataPath, "expected", fmt.Sprintf("%s%s", file, "T.xml"))
-			outFilePath := path.Join(testdataPath, "output", fmt.Sprintf("%s%s", file, "T.xml"))
+			filePath := path.Join(TEST_DATA_PATH, fmt.Sprintf("%s%s", file, ".jack"))
+			cmpFilePath := path.Join(TEST_DATA_PATH, "expected", fmt.Sprintf("%s%s", file, "T.xml"))
+			outFilePath := path.Join(TEST_DATA_PATH, fmt.Sprintf("%s%s", file, "T.xml"))
 			tokens := lexer.Tokenize(filePath)
 
 			writeTokensToXML(tokens, outFilePath)
