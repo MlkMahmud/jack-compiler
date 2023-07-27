@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"container/list"
 	"fmt"
 	"io"
 	"log"
@@ -25,7 +24,7 @@ func NewLexer() *Lexer {
 	return new(Lexer)
 }
 
-func (lexer *Lexer) appendToken(tokens *list.List, entry constants.Token) {
+func (lexer *Lexer) appendToken(tokens *[]constants.Token, entry constants.Token) {
 	if len(entry.Lexeme) > 1 {
 		// Set the current token's colNum to the position of its first character.
 		entry.ColNum = lexer.colNum - len(entry.Lexeme)
@@ -33,7 +32,7 @@ func (lexer *Lexer) appendToken(tokens *list.List, entry constants.Token) {
 		entry.ColNum = lexer.colNum
 	}
 	entry.LineNum = lexer.lineNum
-	tokens.PushBack(entry)
+	*tokens = append(*tokens, entry)
 }
 
 func (lexer *Lexer) read() interface{} {
@@ -58,7 +57,7 @@ func (lexer *Lexer) read() interface{} {
 	return char
 }
 
-func (lexer *Lexer) Tokenize(src string) *list.List {
+func (lexer *Lexer) Tokenize(src string) []constants.Token {
 	defer func() {
 		err := lexer.source.Close()
 		if err != nil {
@@ -66,7 +65,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 		}
 	}()
 
-	tokens := list.New()
+	tokens := make([]constants.Token, 0)
 	file, err := os.Open(src)
 	if err != nil {
 		log.Fatal(err)
@@ -128,14 +127,14 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 				char = lexer.read()
 			} else {
 				// This is a division symbol
-				lexer.appendToken(tokens, constants.Token{
+				lexer.appendToken(&tokens, constants.Token{
 					TokenType: constants.SYMBOL,
 					Lexeme:    "/",
 				})
 				char = nextChar
 			}
 		} else if constants.SYMBOLS[char.(string)] {
-			lexer.appendToken(tokens, constants.Token{
+			lexer.appendToken(&tokens, constants.Token{
 				TokenType: constants.SYMBOL,
 				Lexeme:    char.(string),
 			})
@@ -169,7 +168,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 
 			word := strings.Join(chars, "")
 
-			lexer.appendToken(tokens, constants.Token{
+			lexer.appendToken(&tokens, constants.Token{
 				TokenType: constants.STRING_CONSTANT,
 				Lexeme:    word,
 			})
@@ -191,7 +190,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 			} else {
 				token.TokenType = constants.IDENTIFIER
 			}
-			lexer.appendToken(tokens, token)
+			lexer.appendToken(&tokens, token)
 		} else if regexp.MustCompile(`\d`).MatchString(char.(string)) {
 			chars := []string{char.(string)}
 			char = lexer.read()
@@ -200,7 +199,7 @@ func (lexer *Lexer) Tokenize(src string) *list.List {
 				char = lexer.read()
 			}
 			word := strings.Join(chars, "")
-			lexer.appendToken(tokens, constants.Token{
+			lexer.appendToken(&tokens, constants.Token{
 				TokenType: constants.INTEGER_CONSTANT,
 				Lexeme:    word,
 			})
