@@ -35,12 +35,12 @@ func (lexer *Lexer) appendToken(tokens *[]constants.Token, entry constants.Token
 	*tokens = append(*tokens, entry)
 }
 
-func (lexer *Lexer) read() interface{} {
+func (lexer *Lexer) read() string {
 	buffer := make([]byte, 1)
 	bytes, err := lexer.source.Read(buffer)
 	if err != nil {
 		if err == io.EOF {
-			return nil
+			return "\000"
 		}
 		panic(err)
 	}
@@ -76,7 +76,7 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 	lexer.source = file
 	char := lexer.read()
 
-	for char != nil {
+	for char != "\000" {
 		if char == "/" {
 			nextChar := lexer.read()
 			if nextChar == "/" {
@@ -85,7 +85,7 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 				newlineChar := lexer.read()
 
 				for {
-					if newlineChar == "\n" || newlineChar == nil {
+					if newlineChar == "\n" || newlineChar == "\000" {
 						break
 					}
 					newlineChar = lexer.read()
@@ -107,10 +107,10 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 				forwardSlashChar := lexer.read()
 
 				// Save all characters until the end of the comment. (Used only for error logging).
-				chars := []string{"/", "*", asteriskChar.(string)}
+				chars := []string{"/", "*", asteriskChar}
 
 				for fmt.Sprintf("%s%s", asteriskChar, forwardSlashChar) != "*/" {
-					if forwardSlashChar == nil {
+					if forwardSlashChar == "\000" {
 						message := fmt.Sprintf(
 							"%s:%s:%s\n\n%s\nSyntaxError: invalid or unexpected token",
 							src,
@@ -120,7 +120,7 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 						)
 						panic(message)
 					}
-					chars = append(chars, forwardSlashChar.(string))
+					chars = append(chars, string(forwardSlashChar))
 					asteriskChar = forwardSlashChar
 					forwardSlashChar = lexer.read()
 				}
@@ -133,10 +133,10 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 				})
 				char = nextChar
 			}
-		} else if constants.SYMBOLS[char.(string)] {
+		} else if constants.SYMBOLS[char] {
 			lexer.appendToken(&tokens, constants.Token{
 				TokenType: constants.SYMBOL,
-				Lexeme:    char.(string),
+				Lexeme:    char,
 			})
 			char = lexer.read()
 		} else if char == `"` {
@@ -147,7 +147,7 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 			startLineNum := lexer.lineNum
 
 			for {
-				if char == "\n" || char == nil {
+				if char == "\n" || char == "\000" {
 					errMessage := fmt.Sprintf(
 						"%s:%s:%s\n\n%s\n\nSyntaxError: invalid or unexpected token",
 						src,
@@ -162,7 +162,7 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 					break
 				}
 
-				chars = append(chars, char.(string))
+				chars = append(chars, char)
 				char = lexer.read()
 			}
 
@@ -174,12 +174,12 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 			})
 
 			char = lexer.read()
-		} else if regexp.MustCompile(`(?i)[_a-z]`).MatchString(char.(string)) {
-			chars := []string{char.(string)}
+		} else if regexp.MustCompile(`(?i)[_a-z]`).MatchString(char) {
+			chars := []string{char}
 			char = lexer.read()
 
-			for regexp.MustCompile(`\w`).MatchString(char.(string)) {
-				chars = append(chars, char.(string))
+			for regexp.MustCompile(`\w`).MatchString(char) {
+				chars = append(chars, char)
 				char = lexer.read()
 			}
 
@@ -191,11 +191,11 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 				token.TokenType = constants.IDENTIFIER
 			}
 			lexer.appendToken(&tokens, token)
-		} else if regexp.MustCompile(`\d`).MatchString(char.(string)) {
-			chars := []string{char.(string)}
+		} else if regexp.MustCompile(`\d`).MatchString(char) {
+			chars := []string{char}
 			char = lexer.read()
-			for regexp.MustCompile(`\d`).MatchString(char.(string)) {
-				chars = append(chars, char.(string))
+			for regexp.MustCompile(`\d`).MatchString(char) {
+				chars = append(chars, char)
 				char = lexer.read()
 			}
 			word := strings.Join(chars, "")
