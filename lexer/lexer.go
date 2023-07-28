@@ -1,17 +1,25 @@
 package lexer
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"regexp"
+	"runtime/debug"
 	"strings"
 
 	"github.com/MlkMahmud/jack-compiler/constants"
 )
 
+type LexerError struct {
+	message string
+}
 
+func (e *LexerError) Error() string {
+	return e.message
+}
 
 type Lexer struct {
 	colNum  int
@@ -19,9 +27,18 @@ type Lexer struct {
 	source  *os.File
 }
 
-
 func NewLexer() *Lexer {
 	return new(Lexer)
+}
+
+func (lexer *Lexer) emitError(col, line int, message string) {
+	panic(&LexerError{message: fmt.Sprintf(
+		"<%s:%d:%d>\tError: %s",
+		lexer.source.Name(),
+		line,
+		col,
+		message,
+	)})
 }
 
 func (lexer *Lexer) appendToken(tokens *[]constants.Token, entry constants.Token) {
@@ -63,6 +80,16 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		if r := recover(); r != nil {
+			var lexerError *LexerError
+			if errors.As(r.(error), &lexerError) {
+				fmt.Println(r)
+			} else {
+				debug.PrintStack()
+			}
+			os.Exit(1)
+		}
 	}()
 
 	tokens := make([]constants.Token, 0)
@@ -95,32 +122,16 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 			} else if nextChar == "*" {
 				// This is a multiline comment
 				// Advance until we hit the "*/" terminator
-
-				/*
-					  Save a reference to the starting column and line number of this comment.
-						Deduct one from the "colNum" to account for the read operation on "nextChar".
-				*/
-				startColNum := lexer.colNum - 1
-				startLineNum := lexer.lineNum
-
+				// Deduct one from the "colNum" to account for the read operation on "nextChar".
+				startCol := lexer.colNum - 1
+				startLine := lexer.lineNum
 				asteriskChar := lexer.read()
 				forwardSlashChar := lexer.read()
 
-				// Save all characters until the end of the comment. (Used only for error logging).
-				chars := []string{"/", "*", asteriskChar}
-
 				for fmt.Sprintf("%s%s", asteriskChar, forwardSlashChar) != "*/" {
 					if forwardSlashChar == "\000" {
-						message := fmt.Sprintf(
-							"%s:%s:%s\n\n%s\nSyntaxError: invalid or unexpected token",
-							src,
-							fmt.Sprint(startLineNum),
-							fmt.Sprint(startColNum),
-							strings.Join(chars, ""),
-						)
-						panic(message)
+						lexer.emitError(startCol, startLine, "Unterminated multiline comment.")	
 					}
-					chars = append(chars, string(forwardSlashChar))
 					asteriskChar = forwardSlashChar
 					forwardSlashChar = lexer.read()
 				}
@@ -143,19 +154,12 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 			char = lexer.read()
 			chars := []string{}
 
-			startColNum := lexer.colNum
-			startLineNum := lexer.lineNum
+			startCol := lexer.colNum
+			startLine := lexer.lineNum
 
 			for {
 				if char == "\n" || char == "\000" {
-					errMessage := fmt.Sprintf(
-						"%s:%s:%s\n\n%s\n\nSyntaxError: invalid or unexpected token",
-						src,
-						fmt.Sprint(startLineNum),
-						fmt.Sprint(startColNum),
-						fmt.Sprintf(`"%s`, strings.Join(chars, "")),
-					)
-					panic(errMessage)
+					lexer.emitError(startCol, startLine, "Unterminated string literal.")
 				}
 
 				if char == `"` {
