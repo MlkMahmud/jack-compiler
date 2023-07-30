@@ -81,3 +81,38 @@ type WhileStmt struct {
 	Condition  Expr
 	Statements []Stmt
 }
+
+type Bool int
+
+const (
+	False Bool = iota
+	True
+)
+
+func (b Bool) String() string {
+	return []string{"false", "true"}[b]
+}
+
+type BoolLiteral struct {
+	Value Bool
+}
+
+type IntLiteral struct {
+	Value int16
+}
+
+type NullLiteral struct {}
+
+func (n NullLiteral) String() string {
+	return "null"
+}
+
+type StringLiteral struct {
+	Value string
+}
+
+type ThisLiteral struct {}
+
+func (t ThisLiteral) String() string {
+	return "this"
+}
