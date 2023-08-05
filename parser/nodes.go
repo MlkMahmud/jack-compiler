@@ -82,6 +82,65 @@ type WhileStmt struct {
 	Statements []Stmt
 }
 
+type AssignExpr struct {
+	Target Expr
+	Value  Expr
+}
+
+type BinaryOperator int
+
+const (
+	Addition BinaryOperator = iota
+	Subraction
+	Multiplication
+	Division
+	LessThan
+	GreaterThan
+)
+
+func (op BinaryOperator) String() string {
+	return []string{"+", "-", "*", "/", "<", ">"}[op]
+}
+
+type BinaryExpr struct {
+	Operator BinaryOperator
+	Left     Expr
+	Right    Expr
+}
+
+type LogicalOperator int
+
+const (
+	And LogicalOperator = iota
+	Or
+)
+
+func (op LogicalOperator) String() string {
+	return []string{"&", "|"}[op]
+}
+
+type LogicalExpr struct {
+	Operator LogicalOperator
+	Left     Expr
+	Right    Expr
+}
+
+type UnaryOperator int
+
+const (
+	ArithmeticNegation UnaryOperator = iota
+	BooleanNegation
+)
+
+func (op UnaryOperator) String() string {
+	return []string{"-", "~"}[op]
+}
+
+type UnaryExpr struct {
+	Operator UnaryOperator
+	Operand  string
+}
+
 type Bool int
 
 const (
@@ -101,7 +160,7 @@ type IntLiteral struct {
 	Value int16
 }
 
-type NullLiteral struct {}
+type NullLiteral struct{}
 
 func (n NullLiteral) String() string {
 	return "null"
@@ -111,8 +170,16 @@ type StringLiteral struct {
 	Value string
 }
 
-type ThisLiteral struct {}
+type ThisLiteral struct{}
 
 func (t ThisLiteral) String() string {
 	return "this"
+}
+
+type Indentifier struct {
+	Name string
+}
+
+func (i Indentifier) String() string {
+	return i.Name
 }
