@@ -38,9 +38,9 @@ func writeTokensToXML(tokens []Token, dest string) {
 		file.WriteString(
 			fmt.Sprintf(
 				"  <%s> %s </%s>\n",
-				token.TokenType.ToString(),
+				token.TokenType.String(),
 				WriteSymbol(token.Lexeme),
-				token.TokenType.ToString(),
+				token.TokenType.String(),
 			),
 		)
 	}

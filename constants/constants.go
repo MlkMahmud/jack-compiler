@@ -2,7 +2,7 @@ package constants
 
 type TokenType int
 
-func (tokenType TokenType) ToString() string {
+func (tokenType TokenType) String() string {
 	return []string{
 		"identifier", "integerConstant", "keyword", "stringConstant", "symbol",
 	}[tokenType]

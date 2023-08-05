@@ -2,7 +2,7 @@ package parser
 
 import "fmt"
 
-type Class struct {
+type CompilationUnit struct {
 	Name        string
 	Subroutines []SubroutineDecl
 	Vars        []VarDecl

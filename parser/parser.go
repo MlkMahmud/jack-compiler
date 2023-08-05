@@ -12,9 +12,79 @@ import (
 )
 
 /*
-	The Jack parser receives an array of tokens.
-	It attemps to parse the tokens and generate a
-	parse tree according to the rules of Jack's grammar.
+LEXICAL ELEMENTS
+
+keyword:         'class' | 'constructor' | 'function' | 'method' |
+								 'field' | 'static' | 'var' | 'int' | 'char' | 'boolean' |
+								 'void' | 'true' | 'false' |'null' | 'this' | 'let' | 'do' |
+								 'if' | 'else' | 'while' | 'return'
+
+symbol:          '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' |
+                 '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=' | '~'
+
+integerConstant: decimal integer in range 0...32767
+
+stringConstant:  Sequence of Unicode characters surrounded by double quotes (cannot contain newline or double quote characters)
+
+identifier:      Sequence of letters, digits, underscores NOT starting with a digit.
+
+
+PROGRAM STRUCTURE
+
+class:           'class' className '{' classVarDec* subroutineDec* '}'
+
+classVarDec:     ('static' | 'field') type varName (',' varName)* ';'
+
+type:            'int' | 'char' | 'boolean' | className
+
+subroutineDec:   ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
+
+parameterList:   ((type identifier) (',' <type> identifier)*)?
+
+subroutineBody:  '{' varDec* statements '}'
+
+varDec:          'var' ('int' | 'char' | 'boolean' | identifier) identifier (',' identifier)* ';'
+
+className:       identifier
+
+subroutineName:  identifier
+
+varName:         identifier
+
+STATEMENTS
+
+statements:      statement*
+
+statement:       letStatement | ifStatement | whileStatement | doStatement | returnStatement
+
+letStatement:    'let' identifier ('[' expression ']')? '=' expression ';'
+
+ifStatement      'if' '(' <expression> ')' '{' statements> '}' ('else' '{' statements> '}')?
+
+whileStatement:  'while' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+
+doStatement:     'do' (identifier '.')? identifier '(' <expressionList> ')' ';'
+	
+returnStatement: 'return' <expression>? ';'
+
+
+EXPRESSIONS
+
+expression:      term (op term)*
+
+term:            integerConstant | stringConstant | keywordConstant
+  			         varName | varName '[' expression ']' | subroutineCall |
+  			         '(' expression ')' | unaryOp term
+
+subroutineCall:  subroutineName '(' expressionList ')' | (className|varName) '.' subroutineName '(' expressionList ')'
+
+expressionList:  (expression (',' expression)* )?
+
+op:              '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '='
+
+unaryOp:         '-' | '~' 
+
+keywordConstant: 'true' | 'false' | 'null' | 'this'
 */
 
 type ParserErrorType int
@@ -72,14 +142,14 @@ func (parser *Parser) emitError(errorType ParserErrorType, token any) {
 			token.(constants.Token).ColNum,
 			token.(constants.Token).Lexeme,
 		)
-		
+
 	case UNEXPECTED_END_OF_INPUT:
 		errorMessage = fmt.Sprintf(
 			"(%s): Syntax error: unexpected end of input\n",
 			srcFile,
 		)
 
-	default: 
+	default:
 		panic(fmt.Sprintf("Error Type: [%d] is not a valid parser error", errorType))
 	}
 
@@ -104,7 +174,7 @@ func (parser *Parser) peekNextToken() constants.Token {
 	return parser.tokens[0]
 }
 
-func (parser *Parser) parseToken(terminals []string) {
+func (parser *Parser) assertToken(terminals []string) {
 	token := parser.getNextToken()
 
 	switch token.TokenType {
@@ -112,7 +182,6 @@ func (parser *Parser) parseToken(terminals []string) {
 		{
 			for _, val := range terminals {
 				if val == token.Lexeme {
-					parser.write(token.TokenType.ToString(), token.Lexeme)
 					return
 				}
 			}
@@ -121,8 +190,43 @@ func (parser *Parser) parseToken(terminals []string) {
 	case constants.INTEGER_CONSTANT, constants.STRING_CONSTANT:
 		{
 			for _, val := range terminals {
-				if val == token.TokenType.ToString() {
-					parser.write(token.TokenType.ToString(), token.Lexeme)
+				if val == token.TokenType.String() {
+					return
+				}
+			}
+		}
+
+	case constants.IDENTIFIER:
+		{
+			for _, val := range terminals {
+				if val == "identifier" {
+					return
+				}
+			}
+		}
+	}
+	parser.emitError(UNEXPECTED_TOKEN, token)
+}
+
+func (parser *Parser) parseToken(terminals []string) {
+	token := parser.getNextToken()
+
+	switch token.TokenType {
+	case constants.KEYWORD, constants.SYMBOL:
+		{
+			for _, val := range terminals {
+				if val == token.Lexeme {
+					parser.write(token.TokenType.String(), token.Lexeme)
+					return
+				}
+			}
+		}
+
+	case constants.INTEGER_CONSTANT, constants.STRING_CONSTANT:
+		{
+			for _, val := range terminals {
+				if val == token.TokenType.String() {
+					parser.write(token.TokenType.String(), token.Lexeme)
 					return
 				}
 			}
@@ -132,7 +236,7 @@ func (parser *Parser) parseToken(terminals []string) {
 		{
 			for _, val := range terminals {
 				if val == "className" || val == "subroutineName" || val == "varName" {
-					parser.write(token.TokenType.ToString(), token.Lexeme)
+					parser.write(token.TokenType.String(), token.Lexeme)
 					return
 				}
 			}
@@ -215,7 +319,7 @@ func (parser *Parser) parseTerm() {
 func (parser *Parser) parseExpression() {
 	// GRAMMAR: term (op term)*
 	if helpers.IsSymbol(parser.peekNextToken(), []string{";", "]", ")"}) {
-		return;
+		return
 	}
 	parser.write("expression", nil)
 	parser.parseTerm()
@@ -290,7 +394,7 @@ func (parser *Parser) parseLetStatement() {
 	parser.write("letStatement", nil)
 	parser.parseToken([]string{"let"})
 	parser.parseToken([]string{"varName"})
-	
+
 	// If the next token is a left bracket "[". We're dealing with an array index assignment.
 	if helpers.IsSymbol(parser.peekNextToken(), []string{"["}) {
 		parser.parseToken([]string{"["})
@@ -316,7 +420,7 @@ func (parser *Parser) parseReturnStatement() {
 func (parser *Parser) parseWhileStatement() {
 	// GRAMMAR: 'while' '(' expression ')' '{' statements '}'
 	parser.write("whileStatement", nil)
-	
+
 	parser.parseToken([]string{"while"})
 	parser.parseToken([]string{"("})
 	parser.parseExpression()
@@ -405,7 +509,7 @@ func (parser *Parser) parseClassVarDec() {
 
 func (parser *Parser) Parse(tokens []constants.Token, outFile string) {
 	// If the tokens list is empty, we're dealing with an empty file.
-	if (len(tokens) < 1) {
+	if len(tokens) < 1 {
 		return
 	}
 
@@ -451,4 +555,42 @@ func (parser *Parser) Parse(tokens []constants.Token, outFile string) {
 
 	parser.parseToken([]string{"}"})
 	parser.write("/class", nil)
+}
+
+func (parser *Parser) Parse_(tokens []constants.Token) CompilationUnit {
+	defer func() {
+		if r := recover(); r != nil {
+			var parserError *ParserError
+			if errors.As(r.(error), &parserError) {
+				fmt.Println(r)
+			} else {
+				debug.PrintStack()
+			}
+			os.Exit(1)
+		}
+	}()
+
+	if len(tokens) < 1 {
+		return CompilationUnit{}
+	}
+
+	parser.tokens = tokens
+	parser.assertToken([]string{"class"})
+	classNameToken := parser.peekNextToken()
+	parser.assertToken([]string{constants.IDENTIFIER.String()})
+	parser.assertToken([]string{"{"})
+
+	compilationUnit := CompilationUnit{Name: classNameToken.Lexeme}
+
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
+		if helpers.IsKeyword(nextToken, []string{"field", "static"}) {
+			parser.parseClassVarDec()
+		} else if helpers.IsKeyword(nextToken, []string{"constructor", "function", "method"}) {
+			parser.parseSubroutineDec()
+		} else {
+			parser.emitError(UNEXPECTED_TOKEN, nextToken)
+		}
+	}
+
+	return compilationUnit
 }
