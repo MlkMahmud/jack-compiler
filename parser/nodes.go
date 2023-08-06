@@ -46,11 +46,21 @@ type VarDecl struct {
 	Type string
 }
 
+type Parameter struct {
+	Name string
+	Type string
+}
+
 type SubroutineDecl struct {
 	Name       string
-	Params     []Expr
+	Params     []Parameter
 	Kind       SubroutineKind
-	ReturnType string
+	Type       string
+	Statements []Stmt
+	Vars       []VarDecl
+}
+
+type BlockStmt struct {
 	Statements []Stmt
 	Vars       []VarDecl
 }
