@@ -174,9 +174,7 @@ func (parser *Parser) peekNextToken() constants.Token {
 	return parser.tokens[0]
 }
 
-func (parser *Parser) assertToken(terminals []string) {
-	token := parser.getNextToken()
-
+func (parser *Parser) assertToken(token constants.Token, terminals []string) {
 	switch token.TokenType {
 	case constants.KEYWORD, constants.SYMBOL:
 		{
@@ -485,79 +483,39 @@ func (parser *Parser) parseSubroutineDec() {
 	parser.write("/subroutineDec", nil)
 }
 
-func (parser *Parser) parseClassVarDec() {
-	// GRAMMAR: ('static' | 'field') ('int' | 'boolean' | 'char' | className) varName (',' varName)* ';'
-	parser.write("classVarDec", nil)
+func (parser *Parser) parseClassVarDec() (vars []VarDecl) {
+	varKindToken := parser.getNextToken()
+	varTypeToken := parser.getNextToken()
+	varNameToken := parser.getNextToken()
 
-	parser.parseToken([]string{"field", "static"})
-	parser.parseToken([]string{"boolean", "char", "className", "int"})
-	parser.parseToken([]string{"varName"})
+	parser.assertToken(varKindToken, []string{"field", "static"})
+	parser.assertToken(varTypeToken, []string{"boolean", "char", "className", "int"})
+	parser.assertToken(varNameToken, []string{"varName"})
 
-	nextToken := parser.peekNextToken()
+	var varKind VarKind;
+
+	if varKindToken.Lexeme == "field" {
+		varKind = Field
+	} else {
+		varKind = Static
+	}
+
+	vars = append(vars, VarDecl{ Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: varKind })
 
 	// Check if it's a multi var declaration.
-	for !helpers.IsSymbol(nextToken, []string{";"}) {
-		parser.parseToken([]string{","})
-		parser.parseToken([]string{"varName"})
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
+		parser.assertToken(parser.getNextToken(), []string{","})
+		parser.assertToken(parser.peekNextToken(), []string{"varName"})
 
-		nextToken = parser.peekNextToken()
+		varNameToken := parser.getNextToken()
+		vars = append(vars, VarDecl{ Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: varKind })
 	}
 
-	parser.parseToken([]string{";"})
-	parser.write("/classVarDec", nil)
+	parser.assertToken(parser.getNextToken(), []string{";"})
+	return vars
 }
 
-func (parser *Parser) Parse(tokens []constants.Token, outFile string) {
-	// If the tokens list is empty, we're dealing with an empty file.
-	if len(tokens) < 1 {
-		return
-	}
-
-	file, err := os.Create(outFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if r := recover(); r != nil {
-			var parserError *ParserError
-			if errors.As(r.(error), &parserError) {
-				fmt.Println(r)
-			} else {
-				debug.PrintStack()
-			}
-			os.Exit(1)
-		}
-	}()
-
-	parser.outFile = file
-	parser.tokens = tokens
-
-	parser.write("class", nil)
-	parser.parseToken([]string{"class"})
-	parser.parseToken([]string{"className"})
-	parser.parseToken([]string{"{"})
-
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
-		if helpers.IsKeyword(nextToken, []string{"field", "static"}) {
-			parser.parseClassVarDec()
-		} else if helpers.IsKeyword(nextToken, []string{"constructor", "function", "method"}) {
-			parser.parseSubroutineDec()
-		} else {
-			parser.emitError(UNEXPECTED_TOKEN, nextToken)
-		}
-	}
-
-	parser.parseToken([]string{"}"})
-	parser.write("/class", nil)
-}
-
-func (parser *Parser) Parse_(tokens []constants.Token) CompilationUnit {
+func (parser *Parser) Parse(tokens []constants.Token) CompilationUnit {
 	defer func() {
 		if r := recover(); r != nil {
 			var parserError *ParserError
@@ -575,16 +533,17 @@ func (parser *Parser) Parse_(tokens []constants.Token) CompilationUnit {
 	}
 
 	parser.tokens = tokens
-	parser.assertToken([]string{"class"})
-	classNameToken := parser.peekNextToken()
-	parser.assertToken([]string{constants.IDENTIFIER.String()})
-	parser.assertToken([]string{"{"})
+	parser.assertToken(parser.getNextToken(), []string{"class"})
+	classNameToken := parser.getNextToken()
+	parser.assertToken(classNameToken, []string{constants.IDENTIFIER.String()})
+	parser.assertToken(parser.getNextToken(), []string{"{"})
 
 	compilationUnit := CompilationUnit{Name: classNameToken.Lexeme}
 
 	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
 		if helpers.IsKeyword(nextToken, []string{"field", "static"}) {
-			parser.parseClassVarDec()
+			vars := parser.parseClassVarDec()
+			compilationUnit.Vars = append(compilationUnit.Vars, vars...)
 		} else if helpers.IsKeyword(nextToken, []string{"constructor", "function", "method"}) {
 			parser.parseSubroutineDec()
 		} else {
