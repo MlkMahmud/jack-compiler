@@ -1,6 +1,9 @@
 package parser
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type CompilationUnit struct {
 	Name        string
@@ -69,6 +72,30 @@ type DoStmt struct {
 	Arguments      []Expr
 	ObjectName     string
 	SubroutineName string
+}
+
+func (d DoStmt) String() string {
+
+	var args []string
+
+	for _, arg := range d.Arguments {
+		args = append(args, arg.String())
+	}
+
+	if d.ObjectName != "" {
+		return fmt.Sprintf(
+			"%s.%s(%s)",
+			d.ObjectName,
+			d.SubroutineName,
+			strings.Join(args, ", "),
+		)
+	}
+
+	return fmt.Sprintf(
+		"%s(%s)",
+		d.SubroutineName,
+		strings.Join(args, ", "),
+	)
 }
 
 type IfStmt struct {

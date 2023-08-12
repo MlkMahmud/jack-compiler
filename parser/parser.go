@@ -336,6 +336,21 @@ func (parser *Parser) parseExpression() {
 	parser.write("/expression", nil)
 }
 
+func (parser *Parser) parseExpressionList_() (args []Expr) {
+	// GRAMMAR: (expression (',' expression)*)?
+	parser.assertToken(parser.getNextToken(), []string{"("})	
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
+		// GET NEXT EXPRESSION IN EXPRESSION lIST
+		if helpers.IsKeyword(parser.peekNextToken(), []string{","}) {
+			// discard "," token before next expresssion in list
+			parser.getNextToken()
+		}
+	}
+
+	parser.assertToken(parser.getNextToken(), []string{")"})
+	return args
+}
+
 func (parser *Parser) parseExpressionList() {
 	// GRAMMAR: (expression (',' expression)*)?
 	parser.write("expressionList", nil)
@@ -350,27 +365,26 @@ func (parser *Parser) parseExpressionList() {
 	parser.write("/expressionList", nil)
 }
 
-func (parser *Parser) parseSubroutineCall() {
-	// GRAMMAR: subroutineName '(' expressionList ')'
-	// GRAMMAR: (className | varName) '.' subroutineName '(' expressionList ')'
-	parser.parseToken([]string{"className", "subroutineName", "varName"})
+func (parser *Parser) parseDoStatement() (stmt DoStmt) {
+	// GRAMMAR: 'do' subroutineName '(' expressionList ')' ';' | 'do' (className | varName) '.' subroutineName '(' expressionList ') ';'
+	parser.assertToken(parser.getNextToken(), []string{"do"});
+	token := parser.getNextToken()
+	parser.assertToken(token, []string{"className", "subroutineName", "varName"})
+
 	if helpers.IsSymbol(parser.peekNextToken(), []string{"."}) {
-		parser.parseToken([]string{"."})
-		parser.parseToken([]string{"subroutineName"})
+		// discard '.' token
+		parser.getNextToken()
+		subroutineNameToken := parser.getNextToken()
+		parser.assertToken(subroutineNameToken, []string{"subroutineName"})
+
+		stmt.ObjectName = token.Lexeme
+		stmt.SubroutineName = subroutineNameToken.Lexeme
+	} else {
+		stmt.SubroutineName = token.Lexeme
 	}
 
-	parser.parseToken([]string{"("})
-	parser.parseExpressionList()
-	parser.parseToken([]string{")"})
-}
-
-func (parser *Parser) parseDoStatement() {
-	// GRAMMAR: 'do' subroutineCall ';'
-	parser.write("doStatement", nil)
-	parser.parseToken([]string{"do"})
-	parser.parseSubroutineCall()
-	parser.parseToken([]string{";"})
-	parser.write("/doStatement", nil)
+	stmt.Arguments = parser.parseExpressionList_()
+	return stmt
 }
 
 func (parser *Parser) parseIfStatement() {
@@ -461,6 +475,19 @@ func (parser *Parser) parseStatements() {
 	parser.write("/statements", nil)
 }
 
+func (parser *Parser) parseStatement() Stmt {
+	token := parser.peekNextToken()
+	var stmt Stmt
+
+	switch token.Lexeme {
+	case "do":
+		stmt = parser.parseDoStatement()
+	default:
+		parser.emitError(UNEXPECTED_TOKEN, token)
+	}
+	return stmt
+}
+
 func (parser *Parser) parseSubroutineBody() (body BlockStmt) {
 	// GRAMMAR: '{' varDec* statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
@@ -470,7 +497,7 @@ func (parser *Parser) parseSubroutineBody() (body BlockStmt) {
 			vars := parser.parseVarDec()
 			body.Vars = append(body.Vars, vars...)
 		} else {
-			parser.parseStatements()
+			body.Statements = append(body.Statements, parser.parseStatement())
 		}
 	}
 
