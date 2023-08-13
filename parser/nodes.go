@@ -75,7 +75,6 @@ type DoStmt struct {
 }
 
 func (d DoStmt) String() string {
-
 	var args []string
 
 	for _, arg := range d.Arguments {
@@ -145,6 +144,24 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
+type CallExpr struct {
+	Arguments []Expr
+	Callee    interface{}
+}
+
+func (expr CallExpr) String() string {
+	var args []string
+
+	for _, arg := range expr.Arguments {
+		args = append(args, arg.String())
+	}
+
+	return fmt.Sprintf(
+		"%s(%s)",
+		expr.Callee,
+		strings.Join(args, ", "))
+}
+
 type LogicalOperator int
 
 const (
@@ -156,10 +173,36 @@ func (op LogicalOperator) String() string {
 	return []string{"&", "|"}[op]
 }
 
+type IndexExpr struct {
+	Indexer Expr
+	Object  Indentifier
+}
+
+func (expr IndexExpr) String() string {
+	return fmt.Sprintf(
+		"%s[%s]",
+		expr.Object,
+		expr.Indexer,
+	)
+}
+
 type LogicalExpr struct {
 	Operator LogicalOperator
 	Left     Expr
 	Right    Expr
+}
+
+type MemberExpr struct {
+	Object   Indentifier
+	Property Indentifier
+}
+
+type ParenExpr struct {
+	Expression Expr
+}
+
+func (expr ParenExpr) String() string {
+	return fmt.Sprintf("(%s)", expr.Expression)
 }
 
 type UnaryOperator int
@@ -178,39 +221,12 @@ type UnaryExpr struct {
 	Operand  string
 }
 
-type Bool int
-
-const (
-	False Bool = iota
-	True
-)
-
-func (b Bool) String() string {
-	return []string{"false", "true"}[b]
+type Literal struct {
+	Value interface{}
 }
 
-type BoolLiteral struct {
-	Value Bool
-}
-
-type IntLiteral struct {
-	Value int16
-}
-
-type NullLiteral struct{}
-
-func (n NullLiteral) String() string {
-	return "null"
-}
-
-type StringLiteral struct {
-	Value string
-}
-
-type ThisLiteral struct{}
-
-func (t ThisLiteral) String() string {
-	return "this"
+func (literal Literal) String() string {
+	return fmt.Sprintf("%v", literal.Value)
 }
 
 type Indentifier struct {

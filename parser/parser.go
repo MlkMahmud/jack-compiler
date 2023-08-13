@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/MlkMahmud/jack-compiler/constants"
 	"github.com/MlkMahmud/jack-compiler/helpers"
@@ -268,14 +269,14 @@ func (parser *Parser) parseVarDec() (vars []VarDecl) {
 	parser.assertToken(varTypeToken, []string{"boolean", "char", "className", "int"})
 	parser.assertToken(varNameToken, []string{"varName"})
 
-	vars = append(vars, VarDecl{ Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: Var })
+	vars = append(vars, VarDecl{Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: Var})
 
 	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
 		parser.assertToken(parser.getNextToken(), []string{","})
 		nextVarNameToken := parser.getNextToken()
 		parser.assertToken(nextVarNameToken, []string{"varName"})
 
-		vars = append(vars, VarDecl{ Name: nextVarNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: Var })
+		vars = append(vars, VarDecl{Name: nextVarNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: Var})
 	}
 
 	parser.assertToken(parser.getNextToken(), []string{";"})
@@ -322,6 +323,55 @@ func (parser *Parser) parseTerm() {
 	parser.write("/term", nil)
 }
 
+func (parser *Parser) parseExpression_() Expr {
+	// GRAMMAR: term (op term)*
+	token := parser.getNextToken()
+	var expr Expr
+
+	// Parenthesized expression
+	if helpers.IsSymbol(token, []string{"("}) {
+		expression := parser.parseExpression_()
+		expr = ParenExpr{Expression: expression}
+		parser.assertToken(parser.getNextToken(), []string{")"})
+	} else if helpers.IsLiteralType(token) {
+		if token.TokenType == constants.INTEGER_CONSTANT {
+			value, err := strconv.ParseInt(token.Lexeme, 10, 16)
+			if err != nil {
+				parser.emitError(UNEXPECTED_TOKEN, token)
+			}
+			expr = Literal{Value: value}
+		} else if helpers.Contains([]string{"true", "false"}, token.Lexeme) {
+			value, err := strconv.ParseBool(token.Lexeme)
+			if err != nil {
+				parser.emitError(UNEXPECTED_TOKEN, token)
+			}
+			expr = Literal{Value: value}
+		} else {
+			expr = Literal{Value: token.Lexeme}
+		}
+	} else if token.TokenType == constants.IDENTIFIER {
+		nextToken := parser.peekNextToken()
+		// If the next token is a left parenthesis '(' or a period symbol '.' we're dealing with a call expression
+		if helpers.IsSymbol(nextToken, []string{"("}) {
+			expr = CallExpr{
+				Arguments: parser.parseExpressionList_(),
+				Callee: Indentifier{ Name: token.Lexeme },
+			}
+		} else if helpers.IsSymbol(nextToken, []string{"."}) {
+			varNameToken := parser.getNextToken()
+			parser.assertToken(varNameToken, []string{"varName"})
+			expr = CallExpr{
+				Arguments: parser.parseExpressionList_(),
+				Callee: MemberExpr{ Object: Indentifier{ Name: token.Lexeme }, Property: Indentifier{ varNameToken.Lexeme } },
+			}
+			// If the next token is a left bracket. We're dealing with an array indexing expression.
+		} else if helpers.IsSymbol(nextToken, []string{"["}) {
+			
+		}
+	}
+	return expr
+}
+
 func (parser *Parser) parseExpression() {
 	// GRAMMAR: term (op term)*
 	if helpers.IsSymbol(parser.peekNextToken(), []string{";", "]", ")"}) {
@@ -338,9 +388,10 @@ func (parser *Parser) parseExpression() {
 
 func (parser *Parser) parseExpressionList_() (args []Expr) {
 	// GRAMMAR: (expression (',' expression)*)?
-	parser.assertToken(parser.getNextToken(), []string{"("})	
+	parser.assertToken(parser.getNextToken(), []string{"("})
+
 	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
-		// GET NEXT EXPRESSION IN EXPRESSION lIST
+		args = append(args, parser.parseExpression_())
 		if helpers.IsKeyword(parser.peekNextToken(), []string{","}) {
 			// discard "," token before next expresssion in list
 			parser.getNextToken()
@@ -367,7 +418,7 @@ func (parser *Parser) parseExpressionList() {
 
 func (parser *Parser) parseDoStatement() (stmt DoStmt) {
 	// GRAMMAR: 'do' subroutineName '(' expressionList ')' ';' | 'do' (className | varName) '.' subroutineName '(' expressionList ') ';'
-	parser.assertToken(parser.getNextToken(), []string{"do"});
+	parser.assertToken(parser.getNextToken(), []string{"do"})
 	token := parser.getNextToken()
 	parser.assertToken(token, []string{"className", "subroutineName", "varName"})
 

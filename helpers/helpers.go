@@ -24,6 +24,29 @@ func IsSymbol(token constants.Token, lexemes []string) bool {
 	return false
 }
 
+func IsBinaryOperator(token constants.Token) bool {
+	return token.TokenType == constants.SYMBOL && Contains([]string{"+", "-", "*", "/", "<", ">"}, token.Lexeme)
+}
+
+func IsLogicalOperator(token constants.Token) bool {
+	return token.TokenType == constants.SYMBOL && Contains([]string{"&", "|"}, token.Lexeme)
+}
+
+func IsLiteralType(token constants.Token) bool {
+	return token.TokenType == constants.INTEGER_CONSTANT ||
+		token.TokenType == constants.STRING_CONSTANT ||
+		Contains([]string{"true", "false", "null", "this"}, token.Lexeme)
+}
+
+func Contains[T comparable](arr []T, elem T) bool {
+	for _, value := range arr {
+		if value == elem {
+			return true
+		}
+	}
+	return false
+}
+
 func WriteSymbol(lexeme string) string {
 	switch lexeme {
 	case "<":
