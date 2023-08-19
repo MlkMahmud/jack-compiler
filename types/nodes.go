@@ -1,12 +1,12 @@
-package parser
+package types
 
 import (
 	"fmt"
 	"strings"
 )
 
-type CompilationUnit struct {
-	Name        string
+type Class struct {
+	Name        Indentifier
 	Subroutines []SubroutineDecl
 	Vars        []VarDecl
 }
