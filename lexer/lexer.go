@@ -10,7 +10,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/MlkMahmud/jack-compiler/constants"
+	"github.com/MlkMahmud/jack-compiler/types"
 )
 
 type LexerError struct {
@@ -41,7 +41,7 @@ func (lexer *Lexer) emitError(col, line int, message string) {
 	)})
 }
 
-func (lexer *Lexer) appendToken(tokens *[]constants.Token, entry constants.Token) {
+func (lexer *Lexer) appendToken(tokens *[]types.Token, entry types.Token) {
 	if len(entry.Lexeme) > 1 {
 		// Set the current token's colNum to the position of its first character.
 		entry.ColNum = lexer.colNum - len(entry.Lexeme)
@@ -74,7 +74,7 @@ func (lexer *Lexer) read() string {
 	return char
 }
 
-func (lexer *Lexer) Tokenize(src string) []constants.Token {
+func (lexer *Lexer) Tokenize(src string) []types.Token {
 	defer func() {
 		err := lexer.source.Close()
 		if err != nil {
@@ -92,7 +92,7 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 		}
 	}()
 
-	tokens := make([]constants.Token, 0)
+	tokens := make([]types.Token, 0)
 	file, err := os.Open(src)
 	if err != nil {
 		log.Fatal(err)
@@ -138,15 +138,15 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 				char = lexer.read()
 			} else {
 				// This is a division symbol
-				lexer.appendToken(&tokens, constants.Token{
-					TokenType: constants.SYMBOL,
+				lexer.appendToken(&tokens, types.Token{
+					TokenType: types.SYMBOL,
 					Lexeme:    "/",
 				})
 				char = nextChar
 			}
-		} else if constants.SYMBOLS[char] {
-			lexer.appendToken(&tokens, constants.Token{
-				TokenType: constants.SYMBOL,
+		} else if types.SYMBOLS[char] {
+			lexer.appendToken(&tokens, types.Token{
+				TokenType: types.SYMBOL,
 				Lexeme:    char,
 			})
 			char = lexer.read()
@@ -172,8 +172,8 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 
 			word := strings.Join(chars, "")
 
-			lexer.appendToken(&tokens, constants.Token{
-				TokenType: constants.STRING_CONSTANT,
+			lexer.appendToken(&tokens, types.Token{
+				TokenType: types.STRING_CONSTANT,
 				Lexeme:    word,
 			})
 
@@ -188,11 +188,11 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 			}
 
 			word := strings.Join(chars, "")
-			token := constants.Token{Lexeme: word}
-			if constants.KEYWORDS[word] {
-				token.TokenType = constants.KEYWORD
+			token := types.Token{Lexeme: word}
+			if types.KEYWORDS[word] {
+				token.TokenType = types.KEYWORD
 			} else {
-				token.TokenType = constants.IDENTIFIER
+				token.TokenType = types.IDENTIFIER
 			}
 			lexer.appendToken(&tokens, token)
 		} else if regexp.MustCompile(`\d`).MatchString(char) {
@@ -203,8 +203,8 @@ func (lexer *Lexer) Tokenize(src string) []constants.Token {
 				char = lexer.read()
 			}
 			word := strings.Join(chars, "")
-			lexer.appendToken(&tokens, constants.Token{
-				TokenType: constants.INTEGER_CONSTANT,
+			lexer.appendToken(&tokens, types.Token{
+				TokenType: types.INTEGER_CONSTANT,
 				Lexeme:    word,
 			})
 		} else {

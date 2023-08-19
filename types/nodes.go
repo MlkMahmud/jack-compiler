@@ -6,33 +6,9 @@ import (
 )
 
 type Class struct {
-	Name        Indentifier
+	Name        Ident
 	Subroutines []SubroutineDecl
 	Vars        []VarDecl
-}
-
-type SubroutineKind int
-
-const (
-	Constructor SubroutineKind = iota
-	Function
-	Method
-)
-
-func (s SubroutineKind) String() string {
-	return []string{"constructor", "function", "method"}[s]
-}
-
-type VarKind int
-
-const (
-	Field VarKind = iota
-	Static
-	Var
-)
-
-func (v VarKind) String() string {
-	return []string{"field", "static", "var"}[v]
 }
 
 type Expr interface {
@@ -69,32 +45,11 @@ type BlockStmt struct {
 }
 
 type DoStmt struct {
-	Arguments      []Expr
-	ObjectName     string
-	SubroutineName string
+	Expression CallExpr
 }
 
 func (d DoStmt) String() string {
-	var args []string
-
-	for _, arg := range d.Arguments {
-		args = append(args, arg.String())
-	}
-
-	if d.ObjectName != "" {
-		return fmt.Sprintf(
-			"%s.%s(%s)",
-			d.ObjectName,
-			d.SubroutineName,
-			strings.Join(args, ", "),
-		)
-	}
-
-	return fmt.Sprintf(
-		"%s(%s)",
-		d.SubroutineName,
-		strings.Join(args, ", "),
-	)
+	return d.Expression.String()
 }
 
 type IfStmt struct {
@@ -104,38 +59,17 @@ type IfStmt struct {
 }
 
 type LetStmt struct {
-	Name        string
-	ArrayAccess Expr
-	Value       Expr
+	Target Expr
+	Value  Expr
 }
 
 type ReturnStmt struct {
-	Value Expr
+	Expression Expr
 }
 
 type WhileStmt struct {
 	Condition  Expr
 	Statements []Stmt
-}
-
-type AssignExpr struct {
-	Target Expr
-	Value  Expr
-}
-
-type BinaryOperator int
-
-const (
-	Addition BinaryOperator = iota
-	Subraction
-	Multiplication
-	Division
-	LessThan
-	GreaterThan
-)
-
-func (op BinaryOperator) String() string {
-	return []string{"+", "-", "*", "/", "<", ">"}[op]
 }
 
 type BinaryExpr struct {
@@ -144,9 +78,18 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
+func (expr BinaryExpr) String() string {
+	return fmt.Sprintf(
+		"%s %s %s",
+		expr.Left,
+		expr.Operator,
+		expr.Right,
+	)
+}
+
 type CallExpr struct {
 	Arguments []Expr
-	Callee    interface{}
+	Callee    Expr
 }
 
 func (expr CallExpr) String() string {
@@ -162,20 +105,9 @@ func (expr CallExpr) String() string {
 		strings.Join(args, ", "))
 }
 
-type LogicalOperator int
-
-const (
-	And LogicalOperator = iota
-	Or
-)
-
-func (op LogicalOperator) String() string {
-	return []string{"&", "|"}[op]
-}
-
 type IndexExpr struct {
 	Indexer Expr
-	Object  Indentifier
+	Object  Ident
 }
 
 func (expr IndexExpr) String() string {
@@ -192,9 +124,26 @@ type LogicalExpr struct {
 	Right    Expr
 }
 
+func (expr LogicalExpr) String() string {
+	return fmt.Sprintf(
+		"%s %s %s",
+		expr.Left,
+		expr.Operator,
+		expr.Right,
+	)
+}
+
 type MemberExpr struct {
-	Object   Indentifier
-	Property Indentifier
+	Object   Ident
+	Property Ident
+}
+
+func (expr MemberExpr) String() string {
+	return fmt.Sprintf(
+		"%s.%s",
+		expr.Object,
+		expr.Property,
+	)
 }
 
 type ParenExpr struct {
@@ -205,34 +154,32 @@ func (expr ParenExpr) String() string {
 	return fmt.Sprintf("(%s)", expr.Expression)
 }
 
-type UnaryOperator int
-
-const (
-	ArithmeticNegation UnaryOperator = iota
-	BooleanNegation
-)
-
-func (op UnaryOperator) String() string {
-	return []string{"-", "~"}[op]
-}
-
 type UnaryExpr struct {
 	Operator UnaryOperator
-	Operand  string
+	Operand  Expr
+}
+
+func (expr UnaryExpr) String() string {
+	return fmt.Sprintf(
+		"%s %s",
+		expr.Operator,
+		expr.Operand,
+	)
 }
 
 type Literal struct {
-	Value interface{}
+	Type  LiteralType
+	Value string
 }
 
 func (literal Literal) String() string {
 	return fmt.Sprintf("%v", literal.Value)
 }
 
-type Indentifier struct {
+type Ident struct {
 	Name string
 }
 
-func (i Indentifier) String() string {
+func (i Ident) String() string {
 	return i.Name
 }

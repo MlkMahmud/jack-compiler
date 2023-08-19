@@ -8,7 +8,7 @@ import (
 	"path"
 	"testing"
 
-	. "github.com/MlkMahmud/jack-compiler/constants"
+	. "github.com/MlkMahmud/jack-compiler/types"
 	. "github.com/MlkMahmud/jack-compiler/helpers"
 	. "github.com/MlkMahmud/jack-compiler/lexer"
 )
