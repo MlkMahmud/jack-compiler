@@ -3,38 +3,38 @@ package helpers
 import (
 	"path/filepath"
 
-	"github.com/MlkMahmud/jack-compiler/constants"
+	"github.com/MlkMahmud/jack-compiler/types"
 )
 
-func IsKeyword(token constants.Token, lexemes []string) bool {
+func IsKeyword(token types.Token, lexemes []string) bool {
 	for _, val := range lexemes {
-		if token.TokenType == constants.KEYWORD && token.Lexeme == val {
+		if token.TokenType == types.KEYWORD && token.Lexeme == val {
 			return true
 		}
 	}
 	return false
 }
 
-func IsSymbol(token constants.Token, lexemes []string) bool {
+func IsSymbol(token types.Token, lexemes []string) bool {
 	for _, val := range lexemes {
-		if token.TokenType == constants.SYMBOL && token.Lexeme == val {
+		if token.TokenType == types.SYMBOL && token.Lexeme == val {
 			return true
 		}
 	}
 	return false
 }
 
-func IsBinaryOperator(token constants.Token) bool {
-	return token.TokenType == constants.SYMBOL && Contains([]string{"+", "-", "*", "/", "<", ">"}, token.Lexeme)
+func IsBinaryOperator(token types.Token) bool {
+	return token.TokenType == types.SYMBOL && Contains([]string{"+", "-", "*", "/", "<", ">"}, token.Lexeme)
 }
 
-func IsLogicalOperator(token constants.Token) bool {
-	return token.TokenType == constants.SYMBOL && Contains([]string{"&", "|"}, token.Lexeme)
+func IsLogicalOperator(token types.Token) bool {
+	return token.TokenType == types.SYMBOL && Contains([]string{"&", "|"}, token.Lexeme)
 }
 
-func IsLiteralType(token constants.Token) bool {
-	return token.TokenType == constants.INTEGER_CONSTANT ||
-		token.TokenType == constants.STRING_CONSTANT ||
+func IsLiteralType(token types.Token) bool {
+	return token.TokenType == types.INTEGER_CONSTANT ||
+		token.TokenType == types.STRING_CONSTANT ||
 		Contains([]string{"true", "false", "null", "this"}, token.Lexeme)
 }
 
