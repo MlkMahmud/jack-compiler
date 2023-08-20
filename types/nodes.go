@@ -27,7 +27,7 @@ type Parameter struct {
 }
 
 type SubroutineDecl struct {
-	Name       string
+	Name       Ident
 	Params     []Parameter
 	Kind       SubroutineKind
 	Type       string

@@ -518,7 +518,7 @@ func (parser *Parser) parseSubroutineDec() (subroutine types.SubroutineDecl) {
 
 	subroutineKind, _ := types.GetSubroutineKind(subroutineKindToken.Lexeme)
 
-	subroutine.Name = subroutineNameToken.Lexeme
+	subroutine.Name = types.Ident{ Name: subroutineNameToken.Lexeme }
 	subroutine.Kind = subroutineKind
 	subroutine.Type = subroutineTypeToken.Lexeme
 
