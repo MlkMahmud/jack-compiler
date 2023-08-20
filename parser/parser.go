@@ -58,11 +58,11 @@ statement:       letStatement | ifStatement | whileStatement | doStatement | ret
 
 letStatement:    'let' identifier ('[' expression ']')? '=' expression ';'
 
-ifStatement      'if' '(' <expression> ')' '{' statements> '}' ('else' '{' statements> '}')?
+ifStatement      'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
 
 whileStatement:  'while' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
 
-doStatement:     'do' (identifier '.')? identifier '(' <expressionList> ')' ';'
+doStatement:     'do' (identifier '.')? identifier '(' expressionList ')' ';'
 
 returnStatement: 'return' <expression>? ';'
 
@@ -310,6 +310,30 @@ func (parser *Parser) parseParenExpression() types.ParenExpr {
 	return expr
 }
 
+func (parser *Parser) parseSubroutineCall() types.CallExpr {
+	// GRAMMAR: subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ') 
+	var expr types.CallExpr
+
+	token := parser.getNextToken()
+	parser.assertToken(token, []string{"className", "subroutineName", "varName"})
+
+	if helpers.IsSymbol(parser.peekNextToken(), []string{"("}) {
+		expr.Callee = types.Ident{ Name: token.Lexeme }
+	} else {
+		parser.assertToken(parser.getNextToken(), []string{"."})
+		subroutineNameToken := parser.getNextToken()
+		parser.assertToken(subroutineNameToken, []string{"subroutineName"})
+		
+		expr.Callee = types.MemberExpr{
+			Object: types.Ident{ Name: token.Lexeme },
+			Property: types.Ident{ Name: subroutineNameToken.Lexeme },
+		}
+	}
+
+	expr.Arguments = parser.parseExpressionList()
+	return expr	
+}
+
 func (parser *Parser) parseUnaryExpression() types.UnaryExpr {
 	// GRAMMAR: ('-' | '~') term
 	opToken := parser.getNextToken()
@@ -367,36 +391,41 @@ func (parser *Parser) parseExpressionList() (args []types.Expr) {
 	return args
 }
 
-func (parser *Parser) parseSubroutineCall() types.CallExpr {
-	// GRAMMAR: subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ') 
-	var expr types.CallExpr
-
-	token := parser.getNextToken()
-	parser.assertToken(token, []string{"className", "subroutineName", "varName"})
-
-	if helpers.IsSymbol(parser.peekNextToken(), []string{"("}) {
-		expr.Callee = types.Ident{ Name: token.Lexeme }
-	} else {
-		parser.assertToken(parser.getNextToken(), []string{"."})
-		subroutineNameToken := parser.getNextToken()
-		parser.assertToken(subroutineNameToken, []string{"subroutineName"})
-		
-		expr.Callee = types.MemberExpr{
-			Object: types.Ident{ Name: token.Lexeme },
-			Property: types.Ident{ Name: subroutineNameToken.Lexeme },
-		}
-	}
-
-	expr.Arguments = parser.parseExpressionList()
-	return expr	
-}
-
 func (parser *Parser) parseDoStatement() (stmt types.DoStmt) {
 	// GRAMMAR: 'do' subroutineName '(' expressionList ')' ';' | 'do' (className | varName) '.' subroutineName '(' expressionList ') ';'
 	parser.assertToken(parser.getNextToken(), []string{"do"})
 	stmt.Expression = parser.parseSubroutineCall()
 	parser.assertToken(parser.getNextToken(), []string{";"})
 	return stmt
+}
+
+func (parser *Parser) parseIfStatement() (stmt types.IfStmt) {
+	// GRAMMAR: 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+	parser.assertToken(parser.getNextToken(), []string{"if"})
+	parser.assertToken(parser.getNextToken(), []string{"("})
+	stmt.Condition = parser.parseExpression()
+	parser.assertToken(parser.getNextToken(), []string{")"})
+
+	stmt.ThenStmt = parser.parseBlockStatement()
+
+	if helpers.IsKeyword(parser.peekNextToken(), []string{"else"}) {
+		// discard 'else' keyword and parse else statement block
+		parser.getNextToken()
+		stmt.ElseStmt = parser.parseBlockStatement()
+	}
+	return stmt
+}
+
+func (parser *Parser) parseBlockStatement() (block types.BlockStmt) {
+	// GRAMMAR: '{' statements '}'
+	parser.assertToken(parser.getNextToken(), []string{"{"})
+
+	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
+		block.Statements = append(block.Statements, parser.parseStatement())
+	}
+
+	parser.assertToken(parser.getNextToken(), []string{"}"})
+	return block
 }
 
 func (parser *Parser) parseStatement() types.Stmt {
@@ -406,13 +435,15 @@ func (parser *Parser) parseStatement() types.Stmt {
 	switch token.Lexeme {
 	case "do":
 		stmt = parser.parseDoStatement()
+	case "if":
+		stmt = parser.parseIfStatement()
 	default:
 		parser.emitError(UNEXPECTED_TOKEN, token)
 	}
 	return stmt
 }
 
-func (parser *Parser) parseSubroutineBody() (body types.BlockStmt) {
+func (parser *Parser) parseSubroutineBody() (body types.SubroutineBody) {
 	// GRAMMAR: '{' varDec* statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
 
@@ -449,10 +480,7 @@ func (parser *Parser) parseSubroutineDec() (subroutine types.SubroutineDecl) {
 	subroutine.Params = append(subroutine.Params, parser.parseParameterList()...)
 	parser.assertToken(parser.getNextToken(), []string{")"})
 
-	body := parser.parseSubroutineBody()
-	subroutine.Statements = body.Statements
-	subroutine.Vars = body.Vars
-
+	subroutine.Body = parser.parseSubroutineBody()
 	return subroutine
 }
 

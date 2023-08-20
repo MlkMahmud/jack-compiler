@@ -35,13 +35,16 @@ type SubroutineDecl struct {
 	Params     []Parameter
 	Kind       SubroutineKind
 	Type       string
+	Body       SubroutineBody
+}
+
+type SubroutineBody struct {
 	Statements []Stmt
 	Vars       []VarDecl
 }
 
 type BlockStmt struct {
 	Statements []Stmt
-	Vars       []VarDecl
 }
 
 type DoStmt struct {
@@ -54,8 +57,25 @@ func (d DoStmt) String() string {
 
 type IfStmt struct {
 	Condition Expr
-	ThenStmt  Stmt
-	ElseStmt  Stmt
+	ThenStmt  BlockStmt
+	ElseStmt  BlockStmt
+}
+
+func (stmt IfStmt) String() string {
+	if len(stmt.ElseStmt.Statements) < 1 {
+		return fmt.Sprintf(
+			"if (%s) %s",
+			stmt.Condition,
+			stmt.ThenStmt,
+		)
+	}
+
+	return fmt.Sprintf(
+		"if (%s) %s\nelse %s",
+		stmt.Condition,
+		stmt.ThenStmt,
+		stmt.ElseStmt,
+	)
 }
 
 type LetStmt struct {
