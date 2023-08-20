@@ -56,10 +56,11 @@ const (
 	Division
 	LessThan
 	GreaterThan
+	Equals
 )
 
 func (op BinaryOperator) String() string {
-	return []string{"+", "-", "*", "/", "<", ">"}[op]
+	return []string{"+", "-", "*", "/", "<", ">", "="}[op]
 }
 
 var binaryOperatorMap = map[string]BinaryOperator{
@@ -69,6 +70,7 @@ var binaryOperatorMap = map[string]BinaryOperator{
 	"/": Division,
 	"<": LessThan,
 	">": GreaterThan,
+	"=": Equals,
 }
 
 func GetBinaryOperator(str string) (BinaryOperator, bool) {

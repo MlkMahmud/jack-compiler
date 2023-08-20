@@ -25,7 +25,7 @@ func IsSymbol(token types.Token, lexemes []string) bool {
 }
 
 func IsBinaryOperator(token types.Token) bool {
-	return token.TokenType == types.SYMBOL && Contains([]string{"+", "-", "*", "/", "<", ">"}, token.Lexeme)
+	return token.TokenType == types.SYMBOL && Contains([]string{"+", "-", "*", "/", "<", ">", "="}, token.Lexeme)
 }
 
 func IsLogicalOperator(token types.Token) bool {
