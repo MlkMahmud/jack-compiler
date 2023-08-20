@@ -249,7 +249,7 @@ func (parser *Parser) parseTerm() types.Expr {
 		if helpers.IsSymbol(nextToken, []string{"(", "."}) {
 			expr = parser.parseSubroutineCall()
 		} else if helpers.IsSymbol(nextToken, []string{"["}) {
-			expr = parser.parserIndexExpression()
+			expr = parser.parseIndexExpression()
 		} else {
 			expr = types.Ident{ Name: parser.getNextToken().Lexeme }
 		}
@@ -287,7 +287,7 @@ func (parse *Parser) parseLiteralExpression() types.Literal {
 	return types.Literal{ Type: types.StringLiteral, Value: token.Lexeme }
 }
 
-func (parser *Parser) parserIndexExpression() types.IndexExpr {
+func (parser *Parser) parseIndexExpression() types.IndexExpr {
 	// GRAMMAR: varName '[' expression ']'
 	var expr types.IndexExpr
 	identToken := parser.getNextToken()
@@ -416,6 +416,26 @@ func (parser *Parser) parseIfStatement() (stmt types.IfStmt) {
 	return stmt
 }
 
+func (parser *Parser) parseLetStatement() (stmt types.LetStmt) {
+	// GRAMMAR: 'let' varName ('[' expression ']')? '=' expression ';'
+	parser.assertToken(parser.getNextToken(), []string{"let"})
+	
+	// If the token ahead of the next token is a '[' we're dealing with an index expression.
+	if helpers.IsSymbol(parser.peekNthToken(1), []string{"["}) {
+		stmt.Target = parser.parseIndexExpression()
+	} else {
+		identToken := parser.getNextToken()
+		parser.assertToken(identToken, []string{"varName"})
+		stmt.Target = types.Ident{ Name: identToken.Lexeme }
+	}
+
+	parser.assertToken(parser.getNextToken(), []string{"="})
+	stmt.Value = parser.parseExpression()
+	parser.assertToken(parser.getNextToken(), []string{";"})
+
+	return stmt
+}
+
 func (parser *Parser) parseBlockStatement() (block types.BlockStmt) {
 	// GRAMMAR: '{' statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
@@ -437,6 +457,8 @@ func (parser *Parser) parseStatement() types.Stmt {
 		stmt = parser.parseDoStatement()
 	case "if":
 		stmt = parser.parseIfStatement()
+	case "let":
+		stmt = parser.parseLetStatement()
 	default:
 		parser.emitError(UNEXPECTED_TOKEN, token)
 	}

@@ -83,6 +83,14 @@ type LetStmt struct {
 	Value  Expr
 }
 
+func (stmt LetStmt) String() string {
+	return fmt.Sprintf(
+		"let %s = %s\n",
+		stmt.Target,
+		stmt.Value,
+	)
+}
+
 type ReturnStmt struct {
 	Expression Expr
 }
