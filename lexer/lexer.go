@@ -48,6 +48,7 @@ func (lexer *Lexer) appendToken(tokens *[]types.Token, entry types.Token) {
 	} else {
 		entry.ColNum = lexer.colNum
 	}
+	entry.Filename = lexer.source.Name()
 	entry.LineNum = lexer.lineNum
 	*tokens = append(*tokens, entry)
 }

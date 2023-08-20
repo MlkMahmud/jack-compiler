@@ -7,6 +7,7 @@ func (tokenType TokenType) String() string {
 		"identifier", "integerConstant", "keyword", "stringConstant", "symbol",
 	}[tokenType]
 }
+
 const (
 	IDENTIFIER TokenType = iota
 	INTEGER_CONSTANT
@@ -17,6 +18,7 @@ const (
 
 type Token struct {
 	ColNum    int
+	Filename  string
 	Lexeme    string
 	LineNum   int
 	TokenType TokenType
