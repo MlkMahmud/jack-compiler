@@ -436,6 +436,18 @@ func (parser *Parser) parseLetStatement() (stmt types.LetStmt) {
 	return stmt
 }
 
+func (parser *Parser) parseReturnStatement() (stmt types.ReturnStmt) {
+	// GRAMMAR: 'return' expression? ';'
+	parser.assertToken(parser.getNextToken(), []string{"return"})
+
+	if !helpers.IsSymbol(parser.peekNextToken(), []string{";"}) {
+		stmt.Expression = parser.parseExpression()
+	}
+
+	parser.assertToken(parser.getNextToken(), []string{";"})
+	return stmt
+}
+
 func (parser *Parser) parseBlockStatement() (block types.BlockStmt) {
 	// GRAMMAR: '{' statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
@@ -459,6 +471,8 @@ func (parser *Parser) parseStatement() types.Stmt {
 		stmt = parser.parseIfStatement()
 	case "let":
 		stmt = parser.parseLetStatement()
+	case "return":
+		stmt = parser.parseReturnStatement()
 	default:
 		parser.emitError(UNEXPECTED_TOKEN, token)
 	}

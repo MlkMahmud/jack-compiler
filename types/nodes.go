@@ -95,6 +95,10 @@ type ReturnStmt struct {
 	Expression Expr
 }
 
+func (stmt ReturnStmt) String() string {
+	return fmt.Sprintf("return %s;\n", stmt.Expression)
+}
+
 type WhileStmt struct {
 	Condition  Expr
 	Statements []Stmt
