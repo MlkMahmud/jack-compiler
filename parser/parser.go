@@ -60,7 +60,7 @@ letStatement:    'let' identifier ('[' expression ']')? '=' expression ';'
 
 ifStatement      'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
 
-whileStatement:  'while' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+whileStatement:  'while' '(' expression ')' '{' statements '}'
 
 doStatement:     'do' (identifier '.')? identifier '(' expressionList ')' ';'
 
@@ -448,6 +448,17 @@ func (parser *Parser) parseReturnStatement() (stmt types.ReturnStmt) {
 	return stmt
 }
 
+func (parser *Parser) parseWhileStatement() (stmt types.WhileStmt) {
+	// GRAMMAR: 'while' '(' expression ')' '{' statements '}'
+	parser.assertToken(parser.getNextToken(), []string{"while"})
+	parser.assertToken(parser.getNextToken(), []string{"("})
+	stmt.Condition = parser.parseExpression()
+	parser.assertToken(parser.getNextToken(), []string{")"})
+	stmt.Body = parser.parseBlockStatement()
+
+	return stmt
+}
+
 func (parser *Parser) parseBlockStatement() (block types.BlockStmt) {
 	// GRAMMAR: '{' statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
@@ -473,6 +484,8 @@ func (parser *Parser) parseStatement() types.Stmt {
 		stmt = parser.parseLetStatement()
 	case "return":
 		stmt = parser.parseReturnStatement()
+	case "while":
+		stmt = parser.parseWhileStatement()
 	default:
 		parser.emitError(UNEXPECTED_TOKEN, token)
 	}
