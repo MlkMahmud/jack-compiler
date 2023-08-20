@@ -102,8 +102,8 @@ func (e *ParserError) Error() string {
 }
 
 type Parser struct {
-	outFile *os.File
-	tokens  []types.Token
+	filename string
+	tokens   []types.Token
 }
 
 func NewParser() *Parser {
@@ -111,14 +111,13 @@ func NewParser() *Parser {
 }
 
 func (parser *Parser) emitError(errorType ParserErrorType, token any) {
-	srcFile := helpers.ReplaceFileExt(parser.outFile.Name(), ".jack")
 	var errorMessage string
 
 	switch errorType {
 	case UNEXPECTED_TOKEN:
 		errorMessage = fmt.Sprintf(
 			"(%s):[%d:%d]: Syntax error: unexpected token '%s'\n",
-			srcFile,
+			parser.filename,
 			token.(types.Token).LineNum,
 			token.(types.Token).ColNum,
 			token.(types.Token).Lexeme,
@@ -127,13 +126,12 @@ func (parser *Parser) emitError(errorType ParserErrorType, token any) {
 	case UNEXPECTED_END_OF_INPUT:
 		errorMessage = fmt.Sprintf(
 			"(%s): Syntax error: unexpected end of input\n",
-			srcFile,
+			parser.filename,
 		)
 
 	default:
 		panic(fmt.Sprintf("Error Type: [%d] is not a valid parser error", errorType))
 	}
-
 	panic(&ParserError{errorMessage})
 }
 
@@ -236,8 +234,8 @@ func (parser *Parser) parseVarDec() (vars []types.VarDecl) {
 }
 
 func (parser *Parser) parseTerm() types.Expr {
- 	token := parser.peekNextToken()
-	
+	token := parser.peekNextToken()
+
 	if helpers.IsSymbol(token, []string{"("}) {
 		return parser.parseParenExpression()
 	}
@@ -251,7 +249,7 @@ func (parser *Parser) parseTerm() types.Expr {
 		} else if helpers.IsSymbol(nextToken, []string{"["}) {
 			expr = parser.parseIndexExpression()
 		} else {
-			expr = types.Ident{ Name: parser.getNextToken().Lexeme }
+			expr = types.Ident{Name: parser.getNextToken().Lexeme}
 		}
 		return expr
 	}
@@ -267,24 +265,24 @@ func (parse *Parser) parseLiteralExpression() types.Literal {
 	// GRAMMAR: 'true' | 'false' | 'null' | 'this' | integerConstant | stringConstant
 	token := parse.getNextToken()
 
-	if (helpers.IsKeyword(token, []string{"true", "false"})) {
-		return types.Literal{ Type: types.BooleanLiteral, Value: token.Lexeme }
+	if helpers.IsKeyword(token, []string{"true", "false"}) {
+		return types.Literal{Type: types.BooleanLiteral, Value: token.Lexeme}
 	}
 
 	if helpers.IsKeyword(token, []string{"null"}) {
-		return types.Literal{ Type: types.ThisLiteral, Value: token.Lexeme }
+		return types.Literal{Type: types.ThisLiteral, Value: token.Lexeme}
 	}
 
 	if helpers.IsKeyword(token, []string{"this"}) {
-		return types.Literal{ Type: types.ThisLiteral, Value: token.Lexeme }
+		return types.Literal{Type: types.ThisLiteral, Value: token.Lexeme}
 	}
 
 	if token.TokenType == types.INTEGER_CONSTANT {
-		return types.Literal{ Type: types.IntegerLiteral, Value: token.Lexeme }
+		return types.Literal{Type: types.IntegerLiteral, Value: token.Lexeme}
 	}
 
 	parse.assertToken(token, []string{"stringConstant"})
-	return types.Literal{ Type: types.StringLiteral, Value: token.Lexeme }
+	return types.Literal{Type: types.StringLiteral, Value: token.Lexeme}
 }
 
 func (parser *Parser) parseIndexExpression() types.IndexExpr {
@@ -294,7 +292,7 @@ func (parser *Parser) parseIndexExpression() types.IndexExpr {
 	parser.assertToken(identToken, []string{"varName"})
 	parser.assertToken(parser.getNextToken(), []string{"["})
 	expr = types.IndexExpr{
-		Object: types.Ident{ Name: identToken.Lexeme },
+		Object:  types.Ident{Name: identToken.Lexeme},
 		Indexer: parser.parseExpression(),
 	}
 	parser.assertToken(parser.getNextToken(), []string{"]"})
@@ -306,32 +304,31 @@ func (parser *Parser) parseParenExpression() types.ParenExpr {
 	var expr types.ParenExpr
 	parser.assertToken(parser.getNextToken(), []string{"("})
 	expr.Expression = parser.parseExpression()
-	parser.assertToken(parser.getNextToken(), []string{")"}) 
+	parser.assertToken(parser.getNextToken(), []string{")"})
 	return expr
 }
 
 func (parser *Parser) parseSubroutineCall() types.CallExpr {
-	// GRAMMAR: subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ') 
+	// GRAMMAR: subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')
 	var expr types.CallExpr
 
 	token := parser.getNextToken()
 	parser.assertToken(token, []string{"className", "subroutineName", "varName"})
 
 	if helpers.IsSymbol(parser.peekNextToken(), []string{"("}) {
-		expr.Callee = types.Ident{ Name: token.Lexeme }
+		expr.Callee = types.Ident{Name: token.Lexeme}
 	} else {
 		parser.assertToken(parser.getNextToken(), []string{"."})
 		subroutineNameToken := parser.getNextToken()
 		parser.assertToken(subroutineNameToken, []string{"subroutineName"})
-		
+
 		expr.Callee = types.MemberExpr{
-			Object: types.Ident{ Name: token.Lexeme },
-			Property: types.Ident{ Name: subroutineNameToken.Lexeme },
+			Object:   types.Ident{Name: token.Lexeme},
+			Property: types.Ident{Name: subroutineNameToken.Lexeme},
 		}
 	}
-
 	expr.Arguments = parser.parseExpressionList()
-	return expr	
+	return expr
 }
 
 func (parser *Parser) parseUnaryExpression() types.UnaryExpr {
@@ -342,7 +339,7 @@ func (parser *Parser) parseUnaryExpression() types.UnaryExpr {
 
 	return types.UnaryExpr{
 		Operator: operator,
-		Operand: parser.parseTerm(),
+		Operand:  parser.parseExpression(),
 	}
 }
 
@@ -352,13 +349,13 @@ func (parser *Parser) parseExpression() types.Expr {
 	nexToken := parser.peekNextToken()
 
 	if helpers.IsBinaryOperator(nexToken) {
-		parser.assertToken(parser.getNextToken(), []string{"+", "-", "*", "/", "<", ">"})
+		parser.assertToken(parser.getNextToken(), []string{"+", "-", "*", "/", "<", ">", "="})
 		operator, _ := types.GetBinaryOperator(nexToken.Lexeme)
 
 		return types.BinaryExpr{
-			Left: term,
+			Left:     term,
 			Operator: operator,
-			Right: parser.parseExpression(),
+			Right:    parser.parseExpression(),
 		}
 	}
 
@@ -366,9 +363,9 @@ func (parser *Parser) parseExpression() types.Expr {
 		parser.assertToken(parser.getNextToken(), []string{"&", "|"})
 		operator, _ := types.GetLogicalOperator(nexToken.Lexeme)
 		return types.LogicalExpr{
-			Left: term,
+			Left:     term,
 			Operator: operator,
-			Right: parser.parseExpression(),
+			Right:    parser.parseExpression(),
 		}
 	}
 
@@ -381,7 +378,7 @@ func (parser *Parser) parseExpressionList() (args []types.Expr) {
 
 	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
 		args = append(args, parser.parseExpression())
-		if helpers.IsKeyword(parser.peekNextToken(), []string{","}) {
+		if helpers.IsSymbol(parser.peekNextToken(), []string{","}) {
 			// discard "," token before next expresssion in list
 			parser.getNextToken()
 		}
@@ -419,14 +416,14 @@ func (parser *Parser) parseIfStatement() (stmt types.IfStmt) {
 func (parser *Parser) parseLetStatement() (stmt types.LetStmt) {
 	// GRAMMAR: 'let' varName ('[' expression ']')? '=' expression ';'
 	parser.assertToken(parser.getNextToken(), []string{"let"})
-	
+
 	// If the token ahead of the next token is a '[' we're dealing with an index expression.
 	if helpers.IsSymbol(parser.peekNthToken(1), []string{"["}) {
 		stmt.Target = parser.parseIndexExpression()
 	} else {
 		identToken := parser.getNextToken()
 		parser.assertToken(identToken, []string{"varName"})
-		stmt.Target = types.Ident{ Name: identToken.Lexeme }
+		stmt.Target = types.Ident{Name: identToken.Lexeme}
 	}
 
 	parser.assertToken(parser.getNextToken(), []string{"="})
@@ -519,7 +516,7 @@ func (parser *Parser) parseSubroutineDec() (subroutine types.SubroutineDecl) {
 	parser.assertToken(subroutineTypeToken, []string{"boolean", "char", "className", "int", "void"})
 	parser.assertToken(subroutineNameToken, []string{"subroutineName"})
 
-	subroutineKind, _ := types.GetSubroutineKind(subroutineKindToken.Lexeme) 
+	subroutineKind, _ := types.GetSubroutineKind(subroutineKindToken.Lexeme)
 
 	subroutine.Name = subroutineNameToken.Lexeme
 	subroutine.Kind = subroutineKind
@@ -576,13 +573,14 @@ func (parser *Parser) Parse(tokens []types.Token) (class types.Class) {
 		return class
 	}
 
+	parser.filename = tokens[0].Filename
 	parser.tokens = tokens
 	parser.assertToken(parser.getNextToken(), []string{"class"})
 	classNameToken := parser.getNextToken()
 	parser.assertToken(classNameToken, []string{"className"})
 	parser.assertToken(parser.getNextToken(), []string{"{"})
 
-	class.Name = types.Ident{ Name: classNameToken.Lexeme }
+	class.Name = types.Ident{Name: classNameToken.Lexeme}
 
 	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
 		if helpers.IsKeyword(nextToken, []string{"field", "static"}) {
