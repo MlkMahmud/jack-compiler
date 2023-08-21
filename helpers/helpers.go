@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"path/filepath"
-
 	"github.com/MlkMahmud/jack-compiler/types"
 )
 
@@ -45,23 +43,4 @@ func Contains[T comparable](arr []T, elem T) bool {
 		}
 	}
 	return false
-}
-
-func WriteSymbol(lexeme string) string {
-	switch lexeme {
-	case "<":
-		return "&lt;"
-	case ">":
-		return "&gt;"
-	case "&":
-		return "&amp;"
-	default:
-		return lexeme
-	}
-}
-
-func ReplaceFileExt(filename, ext string) string {
-	extension := filepath.Ext(filename)
-	basename := filename[0 : len(filename)-len(extension)]
-	return basename + ext
 }

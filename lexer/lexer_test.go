@@ -9,11 +9,24 @@ import (
 	"testing"
 
 	. "github.com/MlkMahmud/jack-compiler/types"
-	. "github.com/MlkMahmud/jack-compiler/helpers"
 	. "github.com/MlkMahmud/jack-compiler/lexer"
 )
 
 const TEST_DATA_PATH = "../testdata"
+
+func writeSymbol(lexeme string) string {
+	switch lexeme {
+	case "<":
+		return "&lt;"
+	case ">":
+		return "&gt;"
+	case "&":
+		return "&amp;"
+	default:
+		return lexeme
+	}
+}
+
 
 func readFileContent(filename string) string {
 	file, _ := os.Open(filename)
@@ -39,7 +52,7 @@ func writeTokensToXML(tokens []Token, dest string) {
 			fmt.Sprintf(
 				"  <%s> %s </%s>\n",
 				token.TokenType.String(),
-				WriteSymbol(token.Lexeme),
+				writeSymbol(token.Lexeme),
 				token.TokenType.String(),
 			),
 		)
