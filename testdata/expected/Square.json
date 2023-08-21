@@ -1,0 +1,677 @@
+{
+  "Name": { "Name": "Square" },
+  "Subroutines": [
+    {
+      "Name": { "Name": "new" },
+      "Params": [
+        { "Name": "Ax", "Type": "int" },
+        { "Name": "Ay", "Type": "int" },
+        { "Name": "Asize", "Type": "int" }
+      ],
+      "Kind": 0,
+      "Type": "Square",
+      "Body": {
+        "Statements": [
+          { "Target": { "Name": "x" }, "Value": { "Name": "Ax" } },
+          { "Target": { "Name": "y" }, "Value": { "Name": "Ay" } },
+          { "Target": { "Name": "size" }, "Value": { "Name": "Asize" } },
+          { "Expression": { "Arguments": null, "Callee": { "Name": "draw" } } },
+          { "Expression": { "Type": 4, "Value": "this" } }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "dispose" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Expression": {
+              "Arguments": [{ "Type": 4, "Value": "this" }],
+              "Callee": {
+                "Object": { "Name": "Memory" },
+                "Property": { "Name": "deAlloc" }
+              }
+            }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "draw" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Expression": {
+              "Arguments": [{ "Type": 0, "Value": "true" }],
+              "Callee": {
+                "Object": { "Name": "Screen" },
+                "Property": { "Name": "setColor" }
+              }
+            }
+          },
+          {
+            "Expression": {
+              "Arguments": [
+                { "Name": "x" },
+                { "Name": "y" },
+                {
+                  "Operator": 0,
+                  "Left": { "Name": "x" },
+                  "Right": { "Name": "size" }
+                },
+                {
+                  "Operator": 0,
+                  "Left": { "Name": "y" },
+                  "Right": { "Name": "size" }
+                }
+              ],
+              "Callee": {
+                "Object": { "Name": "Screen" },
+                "Property": { "Name": "drawRectangle" }
+              }
+            }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "erase" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Expression": {
+              "Arguments": [{ "Type": 0, "Value": "false" }],
+              "Callee": {
+                "Object": { "Name": "Screen" },
+                "Property": { "Name": "setColor" }
+              }
+            }
+          },
+          {
+            "Expression": {
+              "Arguments": [
+                { "Name": "x" },
+                { "Name": "y" },
+                {
+                  "Operator": 0,
+                  "Left": { "Name": "x" },
+                  "Right": { "Name": "size" }
+                },
+                {
+                  "Operator": 0,
+                  "Left": { "Name": "y" },
+                  "Right": { "Name": "size" }
+                }
+              ],
+              "Callee": {
+                "Object": { "Name": "Screen" },
+                "Property": { "Name": "drawRectangle" }
+              }
+            }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "incSize" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 0,
+              "Left": {
+                "Expression": {
+                  "Operator": 4,
+                  "Left": {
+                    "Expression": {
+                      "Operator": 0,
+                      "Left": { "Name": "y" },
+                      "Right": { "Name": "size" }
+                    }
+                  },
+                  "Right": { "Type": 1, "Value": "254" }
+                }
+              },
+              "Right": {
+                "Expression": {
+                  "Operator": 4,
+                  "Left": {
+                    "Expression": {
+                      "Operator": 0,
+                      "Left": { "Name": "x" },
+                      "Right": { "Name": "size" }
+                    }
+                  },
+                  "Right": { "Type": 1, "Value": "510" }
+                }
+              }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": { "Name": "erase" }
+                  }
+                },
+                {
+                  "Target": { "Name": "size" },
+                  "Value": {
+                    "Operator": 0,
+                    "Left": { "Name": "size" },
+                    "Right": { "Type": 1, "Value": "2" }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": { "Name": "draw" }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "decSize" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 5,
+              "Left": { "Name": "size" },
+              "Right": { "Type": 1, "Value": "2" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": { "Name": "erase" }
+                  }
+                },
+                {
+                  "Target": { "Name": "size" },
+                  "Value": {
+                    "Operator": 1,
+                    "Left": { "Name": "size" },
+                    "Right": { "Type": 1, "Value": "2" }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": { "Name": "draw" }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "moveUp" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 5,
+              "Left": { "Name": "y" },
+              "Right": { "Type": 1, "Value": "1" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      { "Name": "x" },
+                      {
+                        "Operator": 1,
+                        "Left": {
+                          "Expression": {
+                            "Operator": 0,
+                            "Left": { "Name": "y" },
+                            "Right": { "Name": "size" }
+                          }
+                        },
+                        "Right": { "Type": 1, "Value": "1" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Name": "size" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Name": "size" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                },
+                {
+                  "Target": { "Name": "y" },
+                  "Value": {
+                    "Operator": 1,
+                    "Left": { "Name": "y" },
+                    "Right": { "Type": 1, "Value": "2" }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      { "Name": "x" },
+                      { "Name": "y" },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Name": "size" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Type": 1, "Value": "1" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "moveDown" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 4,
+              "Left": {
+                "Expression": {
+                  "Operator": 0,
+                  "Left": { "Name": "y" },
+                  "Right": { "Name": "size" }
+                }
+              },
+              "Right": { "Type": 1, "Value": "254" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      { "Name": "x" },
+                      { "Name": "y" },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Name": "size" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Type": 1, "Value": "1" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                },
+                {
+                  "Target": { "Name": "y" },
+                  "Value": {
+                    "Operator": 0,
+                    "Left": { "Name": "y" },
+                    "Right": { "Type": 1, "Value": "2" }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      { "Name": "x" },
+                      {
+                        "Operator": 1,
+                        "Left": {
+                          "Expression": {
+                            "Operator": 0,
+                            "Left": { "Name": "y" },
+                            "Right": { "Name": "size" }
+                          }
+                        },
+                        "Right": { "Type": 1, "Value": "1" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Name": "size" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Name": "size" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "moveLeft" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 5,
+              "Left": { "Name": "x" },
+              "Right": { "Type": 1, "Value": "1" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      {
+                        "Operator": 1,
+                        "Left": {
+                          "Expression": {
+                            "Operator": 0,
+                            "Left": { "Name": "x" },
+                            "Right": { "Name": "size" }
+                          }
+                        },
+                        "Right": { "Type": 1, "Value": "1" }
+                      },
+                      { "Name": "y" },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Name": "size" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Name": "size" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                },
+                {
+                  "Target": { "Name": "x" },
+                  "Value": {
+                    "Operator": 1,
+                    "Left": { "Name": "x" },
+                    "Right": { "Type": 1, "Value": "2" }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      { "Name": "x" },
+                      { "Name": "y" },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Type": 1, "Value": "1" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Name": "size" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "moveRight" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 4,
+              "Left": {
+                "Expression": {
+                  "Operator": 0,
+                  "Left": { "Name": "x" },
+                  "Right": { "Name": "size" }
+                }
+              },
+              "Right": { "Type": 1, "Value": "510" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      { "Name": "x" },
+                      { "Name": "y" },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Type": 1, "Value": "1" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Name": "size" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                },
+                {
+                  "Target": { "Name": "x" },
+                  "Value": {
+                    "Operator": 0,
+                    "Left": { "Name": "x" },
+                    "Right": { "Type": 1, "Value": "2" }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "setColor" }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "Arguments": [
+                      {
+                        "Operator": 1,
+                        "Left": {
+                          "Expression": {
+                            "Operator": 0,
+                            "Left": { "Name": "x" },
+                            "Right": { "Name": "size" }
+                          }
+                        },
+                        "Right": { "Type": 1, "Value": "1" }
+                      },
+                      { "Name": "y" },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "x" },
+                        "Right": { "Name": "size" }
+                      },
+                      {
+                        "Operator": 0,
+                        "Left": { "Name": "y" },
+                        "Right": { "Name": "size" }
+                      }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Screen" },
+                      "Property": { "Name": "drawRectangle" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    }
+  ],
+  "Vars": [
+    { "Name": "x", "Kind": 0, "Type": "int" },
+    { "Name": "y", "Kind": 0, "Type": "int" },
+    { "Name": "size", "Kind": 0, "Type": "int" }
+  ]
+}

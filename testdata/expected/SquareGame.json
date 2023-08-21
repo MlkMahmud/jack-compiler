@@ -1,0 +1,381 @@
+{
+  "Name": { "Name": "SquareGame" },
+  "Subroutines": [
+    {
+      "Name": { "Name": "new" },
+      "Params": null,
+      "Kind": 0,
+      "Type": "SquareGame",
+      "Body": {
+        "Statements": [
+          {
+            "Target": { "Name": "square" },
+            "Value": {
+              "Arguments": [
+                { "Type": 1, "Value": "0" },
+                { "Type": 1, "Value": "0" },
+                { "Type": 1, "Value": "30" }
+              ],
+              "Callee": {
+                "Object": { "Name": "Square" },
+                "Property": { "Name": "new" }
+              }
+            }
+          },
+          {
+            "Target": { "Name": "direction" },
+            "Value": { "Type": 1, "Value": "0" }
+          },
+          { "Expression": { "Type": 4, "Value": "this" } }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "dispose" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Expression": {
+              "Arguments": null,
+              "Callee": {
+                "Object": { "Name": "square" },
+                "Property": { "Name": "dispose" }
+              }
+            }
+          },
+          {
+            "Expression": {
+              "Arguments": [{ "Type": 4, "Value": "this" }],
+              "Callee": {
+                "Object": { "Name": "Memory" },
+                "Property": { "Name": "deAlloc" }
+              }
+            }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "moveSquare" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Condition": {
+              "Operator": 6,
+              "Left": { "Name": "direction" },
+              "Right": { "Type": 1, "Value": "1" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": {
+                      "Object": { "Name": "square" },
+                      "Property": { "Name": "moveUp" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          {
+            "Condition": {
+              "Operator": 6,
+              "Left": { "Name": "direction" },
+              "Right": { "Type": 1, "Value": "2" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": {
+                      "Object": { "Name": "square" },
+                      "Property": { "Name": "moveDown" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          {
+            "Condition": {
+              "Operator": 6,
+              "Left": { "Name": "direction" },
+              "Right": { "Type": 1, "Value": "3" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": {
+                      "Object": { "Name": "square" },
+                      "Property": { "Name": "moveLeft" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          {
+            "Condition": {
+              "Operator": 6,
+              "Left": { "Name": "direction" },
+              "Right": { "Type": 1, "Value": "4" }
+            },
+            "ThenStmt": {
+              "Statements": [
+                {
+                  "Expression": {
+                    "Arguments": null,
+                    "Callee": {
+                      "Object": { "Name": "square" },
+                      "Property": { "Name": "moveRight" }
+                    }
+                  }
+                }
+              ]
+            },
+            "ElseStmt": { "Statements": null }
+          },
+          {
+            "Expression": {
+              "Arguments": [{ "Type": 1, "Value": "5" }],
+              "Callee": {
+                "Object": { "Name": "Sys" },
+                "Property": { "Name": "wait" }
+              }
+            }
+          },
+          { "Expression": null }
+        ],
+        "Vars": null
+      }
+    },
+    {
+      "Name": { "Name": "run" },
+      "Params": null,
+      "Kind": 2,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Target": { "Name": "exit" },
+            "Value": { "Type": 0, "Value": "false" }
+          },
+          {
+            "Body": {
+              "Statements": [
+                {
+                  "Body": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "key" },
+                        "Value": {
+                          "Arguments": null,
+                          "Callee": {
+                            "Object": { "Name": "Keyboard" },
+                            "Property": { "Name": "keyPressed" }
+                          }
+                        }
+                      },
+                      {
+                        "Expression": {
+                          "Arguments": null,
+                          "Callee": { "Name": "moveSquare" }
+                        }
+                      }
+                    ]
+                  },
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "0" }
+                  }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "81" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "exit" },
+                        "Value": { "Type": 0, "Value": "true" }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "90" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Expression": {
+                          "Arguments": null,
+                          "Callee": {
+                            "Object": { "Name": "square" },
+                            "Property": { "Name": "decSize" }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "88" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Expression": {
+                          "Arguments": null,
+                          "Callee": {
+                            "Object": { "Name": "square" },
+                            "Property": { "Name": "incSize" }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "131" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "direction" },
+                        "Value": { "Type": 1, "Value": "1" }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "133" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "direction" },
+                        "Value": { "Type": 1, "Value": "2" }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "130" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "direction" },
+                        "Value": { "Type": 1, "Value": "3" }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Condition": {
+                    "Operator": 6,
+                    "Left": { "Name": "key" },
+                    "Right": { "Type": 1, "Value": "132" }
+                  },
+                  "ThenStmt": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "direction" },
+                        "Value": { "Type": 1, "Value": "4" }
+                      }
+                    ]
+                  },
+                  "ElseStmt": { "Statements": null }
+                },
+                {
+                  "Body": {
+                    "Statements": [
+                      {
+                        "Target": { "Name": "key" },
+                        "Value": {
+                          "Arguments": null,
+                          "Callee": {
+                            "Object": { "Name": "Keyboard" },
+                            "Property": { "Name": "keyPressed" }
+                          }
+                        }
+                      },
+                      {
+                        "Expression": {
+                          "Arguments": null,
+                          "Callee": { "Name": "moveSquare" }
+                        }
+                      }
+                    ]
+                  },
+                  "Condition": {
+                    "Operator": 1,
+                    "Operand": {
+                      "Expression": {
+                        "Operator": 6,
+                        "Left": { "Name": "key" },
+                        "Right": { "Type": 1, "Value": "0" }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "Condition": { "Operator": 1, "Operand": { "Name": "exit" } }
+          },
+          { "Expression": null }
+        ],
+        "Vars": [
+          { "Name": "key", "Kind": 2, "Type": "char" },
+          { "Name": "exit", "Kind": 2, "Type": "boolean" }
+        ]
+      }
+    }
+  ],
+  "Vars": [
+    { "Name": "square", "Kind": 0, "Type": "Square" },
+    { "Name": "direction", "Kind": 0, "Type": "int" }
+  ]
+}

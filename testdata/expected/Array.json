@@ -1,0 +1,143 @@
+{
+  "Name": { "Name": "Main" },
+  "Subroutines": [
+    {
+      "Name": { "Name": "main" },
+      "Params": null,
+      "Kind": 1,
+      "Type": "void",
+      "Body": {
+        "Statements": [
+          {
+            "Target": { "Name": "length" },
+            "Value": {
+              "Arguments": [{ "Type": 3, "Value": "HOW MANY NUMBERS? " }],
+              "Callee": {
+                "Object": { "Name": "Keyboard" },
+                "Property": { "Name": "readInt" }
+              }
+            }
+          },
+          {
+            "Target": { "Name": "a" },
+            "Value": {
+              "Arguments": [{ "Name": "length" }],
+              "Callee": {
+                "Object": { "Name": "Array" },
+                "Property": { "Name": "new" }
+              }
+            }
+          },
+          { "Target": { "Name": "i" }, "Value": { "Type": 1, "Value": "0" } },
+          {
+            "Body": {
+              "Statements": [
+                {
+                  "Target": {
+                    "Indexer": { "Name": "i" },
+                    "Object": { "Name": "a" }
+                  },
+                  "Value": {
+                    "Arguments": [
+                      { "Type": 3, "Value": "ENTER THE NEXT NUMBER: " }
+                    ],
+                    "Callee": {
+                      "Object": { "Name": "Keyboard" },
+                      "Property": { "Name": "readInt" }
+                    }
+                  }
+                },
+                {
+                  "Target": { "Name": "i" },
+                  "Value": {
+                    "Operator": 0,
+                    "Left": { "Name": "i" },
+                    "Right": { "Type": 1, "Value": "1" }
+                  }
+                }
+              ]
+            },
+            "Condition": {
+              "Operator": 4,
+              "Left": { "Name": "i" },
+              "Right": { "Name": "length" }
+            }
+          },
+          { "Target": { "Name": "i" }, "Value": { "Type": 1, "Value": "0" } },
+          { "Target": { "Name": "sum" }, "Value": { "Type": 1, "Value": "0" } },
+          {
+            "Body": {
+              "Statements": [
+                {
+                  "Target": { "Name": "sum" },
+                  "Value": {
+                    "Operator": 0,
+                    "Left": { "Name": "sum" },
+                    "Right": {
+                      "Indexer": { "Name": "i" },
+                      "Object": { "Name": "a" }
+                    }
+                  }
+                },
+                {
+                  "Target": { "Name": "i" },
+                  "Value": {
+                    "Operator": 0,
+                    "Left": { "Name": "i" },
+                    "Right": { "Type": 1, "Value": "1" }
+                  }
+                }
+              ]
+            },
+            "Condition": {
+              "Operator": 4,
+              "Left": { "Name": "i" },
+              "Right": { "Name": "length" }
+            }
+          },
+          {
+            "Expression": {
+              "Arguments": [{ "Type": 3, "Value": "THE AVERAGE IS: " }],
+              "Callee": {
+                "Object": { "Name": "Output" },
+                "Property": { "Name": "printString" }
+              }
+            }
+          },
+          {
+            "Expression": {
+              "Arguments": [
+                {
+                  "Operator": 3,
+                  "Left": { "Name": "sum" },
+                  "Right": { "Name": "length" }
+                }
+              ],
+              "Callee": {
+                "Object": { "Name": "Output" },
+                "Property": { "Name": "printInt" }
+              }
+            }
+          },
+          {
+            "Expression": {
+              "Arguments": null,
+              "Callee": {
+                "Object": { "Name": "Output" },
+                "Property": { "Name": "println" }
+              }
+            }
+          },
+          { "Expression": null }
+        ],
+        "Vars": [
+          { "Name": "a", "Kind": 2, "Type": "Array" },
+          { "Name": "length", "Kind": 2, "Type": "int" },
+          { "Name": "i", "Kind": 2, "Type": "int" },
+          { "Name": "sum", "Kind": 2, "Type": "int" }
+        ]
+      }
+    }
+  ],
+  "Vars": null
+}
