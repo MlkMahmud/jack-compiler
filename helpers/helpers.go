@@ -4,7 +4,7 @@ import (
 	"github.com/MlkMahmud/jack-compiler/types"
 )
 
-func IsKeyword(token types.Token, lexemes []string) bool {
+func IsOneOfKeywords(token types.Token, lexemes []string) bool {
 	for _, val := range lexemes {
 		if token.TokenType == types.KEYWORD && token.Lexeme == val {
 			return true
@@ -13,7 +13,7 @@ func IsKeyword(token types.Token, lexemes []string) bool {
 	return false
 }
 
-func IsSymbol(token types.Token, lexemes []string) bool {
+func IsOneOfSymbols(token types.Token, lexemes []string) bool {
 	for _, val := range lexemes {
 		if token.TokenType == types.SYMBOL && token.Lexeme == val {
 			return true

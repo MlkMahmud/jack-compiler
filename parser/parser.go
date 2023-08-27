@@ -195,14 +195,14 @@ func (parser *Parser) assertToken(token types.Token, terminals []string) {
 
 func (parser *Parser) parseParameterList() (params []types.Parameter) {
 	// GRAMMAR: ((type varName), (',' type varName)*)?
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
 		paramTypeToken := parser.getNextToken()
 		paramNameToken := parser.getNextToken()
 		parser.assertToken(paramTypeToken, []string{"boolean", "char", "className", "int"})
 		parser.assertToken(paramNameToken, []string{"varName"})
 		params = append(params, types.Parameter{Name: paramNameToken.Lexeme, Type: paramTypeToken.Lexeme})
 
-		if helpers.IsSymbol(parser.peekNextToken(), []string{","}) {
+		if helpers.IsOneOfSymbols(parser.peekNextToken(), []string{","}) {
 			parser.getNextToken()
 		}
 	}
@@ -221,7 +221,7 @@ func (parser *Parser) parseVarDec() (vars []types.VarDecl) {
 
 	vars = append(vars, types.VarDecl{Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: types.Var})
 
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
 		parser.assertToken(parser.getNextToken(), []string{","})
 		nextVarNameToken := parser.getNextToken()
 		parser.assertToken(nextVarNameToken, []string{"varName"})
@@ -236,7 +236,7 @@ func (parser *Parser) parseVarDec() (vars []types.VarDecl) {
 func (parser *Parser) parseTerm() types.Expr {
 	token := parser.peekNextToken()
 
-	if helpers.IsSymbol(token, []string{"("}) {
+	if helpers.IsOneOfSymbols(token, []string{"("}) {
 		return parser.parseParenExpression()
 	}
 
@@ -244,9 +244,9 @@ func (parser *Parser) parseTerm() types.Expr {
 		var expr types.Expr
 		nextToken := parser.peekNthToken(1)
 
-		if helpers.IsSymbol(nextToken, []string{"(", "."}) {
+		if helpers.IsOneOfSymbols(nextToken, []string{"(", "."}) {
 			expr = parser.parseSubroutineCall()
-		} else if helpers.IsSymbol(nextToken, []string{"["}) {
+		} else if helpers.IsOneOfSymbols(nextToken, []string{"["}) {
 			expr = parser.parseIndexExpression()
 		} else {
 			expr = types.Ident{Name: parser.getNextToken().Lexeme}
@@ -265,15 +265,15 @@ func (parse *Parser) parseLiteralExpression() types.Literal {
 	// GRAMMAR: 'true' | 'false' | 'null' | 'this' | integerConstant | stringConstant
 	token := parse.getNextToken()
 
-	if helpers.IsKeyword(token, []string{"true", "false"}) {
+	if helpers.IsOneOfKeywords(token, []string{"true", "false"}) {
 		return types.Literal{Type: types.BooleanLiteral, Value: token.Lexeme}
 	}
 
-	if helpers.IsKeyword(token, []string{"null"}) {
+	if helpers.IsOneOfKeywords(token, []string{"null"}) {
 		return types.Literal{Type: types.ThisLiteral, Value: token.Lexeme}
 	}
 
-	if helpers.IsKeyword(token, []string{"this"}) {
+	if helpers.IsOneOfKeywords(token, []string{"this"}) {
 		return types.Literal{Type: types.ThisLiteral, Value: token.Lexeme}
 	}
 
@@ -315,7 +315,7 @@ func (parser *Parser) parseSubroutineCall() types.CallExpr {
 	token := parser.getNextToken()
 	parser.assertToken(token, []string{"className", "subroutineName", "varName"})
 
-	if helpers.IsSymbol(parser.peekNextToken(), []string{"("}) {
+	if helpers.IsOneOfSymbols(parser.peekNextToken(), []string{"("}) {
 		expr.Callee = types.Ident{Name: token.Lexeme}
 	} else {
 		parser.assertToken(parser.getNextToken(), []string{"."})
@@ -376,9 +376,9 @@ func (parser *Parser) parseExpressionList() (args []types.Expr) {
 	// GRAMMAR: (expression (',' expression)*)?
 	parser.assertToken(parser.getNextToken(), []string{"("})
 
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{")"}); nextToken = parser.peekNextToken() {
 		args = append(args, parser.parseExpression())
-		if helpers.IsSymbol(parser.peekNextToken(), []string{","}) {
+		if helpers.IsOneOfSymbols(parser.peekNextToken(), []string{","}) {
 			// discard "," token before next expresssion in list
 			parser.getNextToken()
 		}
@@ -405,7 +405,7 @@ func (parser *Parser) parseIfStatement() (stmt types.IfStmt) {
 
 	stmt.ThenStmt = parser.parseBlockStatement()
 
-	if helpers.IsKeyword(parser.peekNextToken(), []string{"else"}) {
+	if helpers.IsOneOfKeywords(parser.peekNextToken(), []string{"else"}) {
 		// discard 'else' keyword and parse else statement block
 		parser.getNextToken()
 		stmt.ElseStmt = parser.parseBlockStatement()
@@ -418,7 +418,7 @@ func (parser *Parser) parseLetStatement() (stmt types.LetStmt) {
 	parser.assertToken(parser.getNextToken(), []string{"let"})
 
 	// If the token ahead of the next token is a '[' we're dealing with an index expression.
-	if helpers.IsSymbol(parser.peekNthToken(1), []string{"["}) {
+	if helpers.IsOneOfSymbols(parser.peekNthToken(1), []string{"["}) {
 		stmt.Target = parser.parseIndexExpression()
 	} else {
 		identToken := parser.getNextToken()
@@ -437,7 +437,7 @@ func (parser *Parser) parseReturnStatement() (stmt types.ReturnStmt) {
 	// GRAMMAR: 'return' expression? ';'
 	parser.assertToken(parser.getNextToken(), []string{"return"})
 
-	if !helpers.IsSymbol(parser.peekNextToken(), []string{";"}) {
+	if !helpers.IsOneOfSymbols(parser.peekNextToken(), []string{";"}) {
 		stmt.Expression = parser.parseExpression()
 	}
 
@@ -460,7 +460,7 @@ func (parser *Parser) parseBlockStatement() (block types.BlockStmt) {
 	// GRAMMAR: '{' statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
 
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
 		block.Statements = append(block.Statements, parser.parseStatement())
 	}
 
@@ -493,8 +493,8 @@ func (parser *Parser) parseSubroutineBody() (body types.SubroutineBody) {
 	// GRAMMAR: '{' varDec* statements '}'
 	parser.assertToken(parser.getNextToken(), []string{"{"})
 
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
-		if helpers.IsKeyword(nextToken, []string{"var"}) {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
+		if helpers.IsOneOfKeywords(nextToken, []string{"var"}) {
 			vars := parser.parseVarDec()
 			body.Vars = append(body.Vars, vars...)
 		} else {
@@ -544,7 +544,7 @@ func (parser *Parser) parseClassVarDec() (vars []types.VarDecl) {
 	vars = append(vars, types.VarDecl{Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: varKind})
 
 	// Check if it's a multi var declaration.
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{";"}); nextToken = parser.peekNextToken() {
 		parser.assertToken(parser.getNextToken(), []string{","})
 		parser.assertToken(parser.peekNextToken(), []string{"varName"})
 
@@ -582,11 +582,11 @@ func (parser *Parser) Parse(tokens []types.Token) (class types.Class) {
 
 	class.Name = types.Ident{Name: classNameToken.Lexeme}
 
-	for nextToken := parser.peekNextToken(); !helpers.IsSymbol(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
-		if helpers.IsKeyword(nextToken, []string{"field", "static"}) {
+	for nextToken := parser.peekNextToken(); !helpers.IsOneOfSymbols(nextToken, []string{"}"}); nextToken = parser.peekNextToken() {
+		if helpers.IsOneOfKeywords(nextToken, []string{"field", "static"}) {
 			vars := parser.parseClassVarDec()
 			class.Vars = append(class.Vars, vars...)
-		} else if helpers.IsKeyword(nextToken, []string{"constructor", "function", "method"}) {
+		} else if helpers.IsOneOfKeywords(nextToken, []string{"constructor", "function", "method"}) {
 			subroutine := parser.parseSubroutineDec()
 			class.Subroutines = append(class.Subroutines, subroutine)
 		} else {
