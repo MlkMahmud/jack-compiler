@@ -8,7 +8,7 @@
         { "Name": "Ay", "Type": "int" },
         { "Name": "Asize", "Type": "int" }
       ],
-      "Kind": 0,
+      "Kind": 1,
       "Type": "Square",
       "Body": {
         "Statements": [
@@ -24,7 +24,7 @@
     {
       "Name": { "Name": "dispose" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -45,7 +45,7 @@
     {
       "Name": { "Name": "draw" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -88,7 +88,7 @@
     {
       "Name": { "Name": "erase" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -131,7 +131,7 @@
     {
       "Name": { "Name": "incSize" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -199,7 +199,7 @@
     {
       "Name": { "Name": "decSize" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -243,7 +243,7 @@
     {
       "Name": { "Name": "moveUp" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -347,7 +347,7 @@
     {
       "Name": { "Name": "moveDown" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -457,7 +457,7 @@
     {
       "Name": { "Name": "moveLeft" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -561,7 +561,7 @@
     {
       "Name": { "Name": "moveRight" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -670,8 +670,8 @@
     }
   ],
   "Vars": [
-    { "Name": "x", "Kind": 1, "Type": "int" },
-    { "Name": "y", "Kind": 1, "Type": "int" },
-    { "Name": "size", "Kind": 1, "Type": "int" }
+    { "Name": "x", "Kind": 2, "Type": "int" },
+    { "Name": "y", "Kind": 2, "Type": "int" },
+    { "Name": "size", "Kind": 2, "Type": "int" }
   ]
 }

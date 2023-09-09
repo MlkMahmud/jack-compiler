@@ -4,7 +4,8 @@ package types
 type SymbolKind int
 
 const (
-	Constructor SymbolKind = iota
+	Argument SymbolKind = iota
+	Constructor
 	Field
 	Function
 	Method
@@ -13,10 +14,11 @@ const (
 )
 
 func (s SymbolKind) String() string {
-	return []string{"constructor", "field", "function", "method", "static", "var"}[s]
+	return []string{"argument", "constructor", "field", "function", "method", "static", "var"}[s]
 }
 
 var symbolKindMap = map[string]SymbolKind{
+	"argument": Argument,
 	"constructor": Constructor,
 	"field": Field,
 	"function": Function,

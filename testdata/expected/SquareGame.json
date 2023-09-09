@@ -4,7 +4,7 @@
     {
       "Name": { "Name": "new" },
       "Params": null,
-      "Kind": 0,
+      "Kind": 1,
       "Type": "SquareGame",
       "Body": {
         "Statements": [
@@ -34,7 +34,7 @@
     {
       "Name": { "Name": "dispose" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -64,7 +64,7 @@
     {
       "Name": { "Name": "moveSquare" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -169,7 +169,7 @@
     {
       "Name": { "Name": "run" },
       "Params": null,
-      "Kind": 3,
+      "Kind": 4,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -368,14 +368,14 @@
           { "Expression": null }
         ],
         "Vars": [
-          { "Name": "key", "Kind": 5, "Type": "char" },
-          { "Name": "exit", "Kind": 5, "Type": "boolean" }
+          { "Name": "key", "Kind": 6, "Type": "char" },
+          { "Name": "exit", "Kind": 6, "Type": "boolean" }
         ]
       }
     }
   ],
   "Vars": [
-    { "Name": "square", "Kind": 1, "Type": "Square" },
-    { "Name": "direction", "Kind": 1, "Type": "int" }
+    { "Name": "square", "Kind": 2, "Type": "Square" },
+    { "Name": "direction", "Kind": 2, "Type": "int" }
   ]
 }

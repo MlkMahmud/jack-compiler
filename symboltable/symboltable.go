@@ -2,9 +2,15 @@ package symboltable
 
 import (
 	"fmt"
+
+	"github.com/MlkMahmud/jack-compiler/types"
 )
 
-type Symbol struct {}
+type Symbol struct {
+	Kind     types.SymbolKind
+	Position int
+	Type     string
+}
 
 type SymbolTable struct {
 	Enclosing *SymbolTable
@@ -12,7 +18,7 @@ type SymbolTable struct {
 }
 
 func NewSymbolTable(enclosing *SymbolTable) *SymbolTable {
-	return &SymbolTable{ Enclosing: enclosing }
+	return &SymbolTable{Enclosing: enclosing}
 }
 
 func (table *SymbolTable) Add(id string, symbol Symbol) {
