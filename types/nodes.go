@@ -17,7 +17,7 @@ type Stmt interface {
 
 type VarDecl struct {
 	Name string
-	Kind VarKind
+	Kind SymbolKind
 	Type string
 }
 
@@ -27,11 +27,11 @@ type Parameter struct {
 }
 
 type SubroutineDecl struct {
-	Name       Ident
-	Params     []Parameter
-	Kind       SubroutineKind
-	Type       string
-	Body       SubroutineBody
+	Name   Ident
+	Params []Parameter
+	Kind   SymbolKind
+	Type   string
+	Body   SubroutineBody
 }
 
 type SubroutineBody struct {
@@ -109,8 +109,8 @@ func (stmt ReturnStmt) String() string {
 }
 
 type WhileStmt struct {
-	Body 			 BlockStmt
-	Condition  Expr
+	Body      BlockStmt
+	Condition Expr
 }
 
 func (stmt WhileStmt) String() string {

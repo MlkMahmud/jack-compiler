@@ -4,7 +4,7 @@
     {
       "Name": { "Name": "main" },
       "Params": null,
-      "Kind": 1,
+      "Kind": 2,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -131,10 +131,10 @@
           { "Expression": null }
         ],
         "Vars": [
-          { "Name": "a", "Kind": 2, "Type": "Array" },
-          { "Name": "length", "Kind": 2, "Type": "int" },
-          { "Name": "i", "Kind": 2, "Type": "int" },
-          { "Name": "sum", "Kind": 2, "Type": "int" }
+          { "Name": "a", "Kind": 5, "Type": "Array" },
+          { "Name": "length", "Kind": 5, "Type": "int" },
+          { "Name": "i", "Kind": 5, "Type": "int" },
+          { "Name": "sum", "Kind": 5, "Type": "int" }
         ]
       }
     }

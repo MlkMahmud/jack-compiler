@@ -516,9 +516,9 @@ func (parser *Parser) parseSubroutineDec() (subroutine types.SubroutineDecl) {
 	parser.assertToken(subroutineTypeToken, []string{"boolean", "char", "className", "int", "void"})
 	parser.assertToken(subroutineNameToken, []string{"subroutineName"})
 
-	subroutineKind, _ := types.GetSubroutineKind(subroutineKindToken.Lexeme)
+	subroutineKind, _ := types.GetSymbolKindFromString(subroutineKindToken.Lexeme)
 
-	subroutine.Name = types.Ident{ Name: subroutineNameToken.Lexeme }
+	subroutine.Name = types.Ident{Name: subroutineNameToken.Lexeme}
 	subroutine.Kind = subroutineKind
 	subroutine.Type = subroutineTypeToken.Lexeme
 
@@ -540,7 +540,7 @@ func (parser *Parser) parseClassVarDec() (vars []types.VarDecl) {
 	parser.assertToken(varTypeToken, []string{"boolean", "char", "className", "int"})
 	parser.assertToken(varNameToken, []string{"varName"})
 
-	varKind, _ := types.GetVarKind(varKindToken.Lexeme)
+	varKind, _ := types.GetSymbolKindFromString(varKindToken.Lexeme)
 	vars = append(vars, types.VarDecl{Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: varKind})
 
 	// Check if it's a multi var declaration.

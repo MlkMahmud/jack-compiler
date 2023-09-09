@@ -24,7 +24,7 @@
     {
       "Name": { "Name": "dispose" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -45,7 +45,7 @@
     {
       "Name": { "Name": "draw" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -88,7 +88,7 @@
     {
       "Name": { "Name": "erase" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -131,7 +131,7 @@
     {
       "Name": { "Name": "incSize" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -199,7 +199,7 @@
     {
       "Name": { "Name": "decSize" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -243,7 +243,7 @@
     {
       "Name": { "Name": "moveUp" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -347,7 +347,7 @@
     {
       "Name": { "Name": "moveDown" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -457,7 +457,7 @@
     {
       "Name": { "Name": "moveLeft" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -561,7 +561,7 @@
     {
       "Name": { "Name": "moveRight" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -670,8 +670,8 @@
     }
   ],
   "Vars": [
-    { "Name": "x", "Kind": 0, "Type": "int" },
-    { "Name": "y", "Kind": 0, "Type": "int" },
-    { "Name": "size", "Kind": 0, "Type": "int" }
+    { "Name": "x", "Kind": 1, "Type": "int" },
+    { "Name": "y", "Kind": 1, "Type": "int" },
+    { "Name": "size", "Kind": 1, "Type": "int" }
   ]
 }

@@ -34,7 +34,7 @@
     {
       "Name": { "Name": "dispose" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -64,7 +64,7 @@
     {
       "Name": { "Name": "moveSquare" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -169,7 +169,7 @@
     {
       "Name": { "Name": "run" },
       "Params": null,
-      "Kind": 2,
+      "Kind": 3,
       "Type": "void",
       "Body": {
         "Statements": [
@@ -368,14 +368,14 @@
           { "Expression": null }
         ],
         "Vars": [
-          { "Name": "key", "Kind": 2, "Type": "char" },
-          { "Name": "exit", "Kind": 2, "Type": "boolean" }
+          { "Name": "key", "Kind": 5, "Type": "char" },
+          { "Name": "exit", "Kind": 5, "Type": "boolean" }
         ]
       }
     }
   ],
   "Vars": [
-    { "Name": "square", "Kind": 0, "Type": "Square" },
-    { "Name": "direction", "Kind": 0, "Type": "int" }
+    { "Name": "square", "Kind": 1, "Type": "Square" },
+    { "Name": "direction", "Kind": 1, "Type": "int" }
   ]
 }

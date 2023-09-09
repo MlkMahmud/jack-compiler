@@ -1,50 +1,33 @@
 package types
 
 
-type SubroutineKind int
+type SymbolKind int
 
 const (
-	Constructor SubroutineKind = iota
+	Constructor SymbolKind = iota
+	Field
 	Function
 	Method
-)
-
-func (s SubroutineKind) String() string {
-	return []string{"constructor", "function", "method"}[s]
-}
-
-var subroutineKindMap = map[string]SubroutineKind{
-	"constructor": Constructor,
-	"function": Function,
-	"method": Method,
-}
-
-func GetSubroutineKind(str string) (SubroutineKind, bool) {
-	subroutineKind, found := subroutineKindMap[str]
-	return subroutineKind, found
-}
-
-type VarKind int
-
-const (
-	Field VarKind = iota
 	Static
 	Var
 )
 
-func (v VarKind) String() string {
-	return []string{"field", "static", "var"}[v]
+func (s SymbolKind) String() string {
+	return []string{"constructor", "field", "function", "method", "static", "var"}[s]
 }
 
-var varKindMap = map[string]VarKind{
+var symbolKindMap = map[string]SymbolKind{
+	"constructor": Constructor,
 	"field": Field,
+	"function": Function,
+	"method": Method,
 	"static": Static,
 	"var": Var,
 }
 
-func GetVarKind(str string) (VarKind, bool) {
-	kind, found := varKindMap[str]
-	return kind, found 
+func GetSymbolKindFromString(str string) (SymbolKind, bool) {
+	symbolKind, found := symbolKindMap[str]
+	return symbolKind, found
 }
 
 type BinaryOperator int
