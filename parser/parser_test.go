@@ -11,7 +11,7 @@ import (
 
 	. "github.com/MlkMahmud/jack-compiler/lexer"
 	. "github.com/MlkMahmud/jack-compiler/parser"
-	. "github.com/nsf/jsondiff"
+	"github.com/nsf/jsondiff"
 )
 
 const TEST_DATA_PATH = "../testdata"
@@ -47,9 +47,9 @@ func TestParser(t *testing.T) {
 				t.Fatal(err)
 			}
 			
-			difference, desc := Compare(expected, actual, &Options{ SkipMatches: true })
+			difference, desc := jsondiff.Compare(expected, actual, &jsondiff.Options{ SkipMatches: true })
 
-			if difference != FullMatch {
+			if difference != jsondiff.FullMatch {
 				t.Fatal(desc)
 			}
 		})

@@ -17,7 +17,7 @@ type LexerError struct {
 	message string
 }
 
-func (e *LexerError) Error() string {
+func (e LexerError) Error() string {
 	return e.message
 }
 

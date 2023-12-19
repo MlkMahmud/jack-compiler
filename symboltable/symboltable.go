@@ -17,7 +17,7 @@ type SymbolTable struct {
 	Values    map[string]Symbol
 }
 
-func NewSymbolTable(enclosing *SymbolTable) *SymbolTable {
+func New(enclosing *SymbolTable) *SymbolTable {
 	return &SymbolTable{Enclosing: enclosing}
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/MlkMahmud/jack-compiler/lexer"
@@ -18,7 +19,7 @@ func printHelpMessage() {
 
 func main() {
 	var source string
-	flag.StringVar(&source, "src", "", "Path to a single '.jack' file or a directory containing one or more '.jack' files.")
+	flag.StringVar(&source, "src", "", "Path to a '.jack' file or a directory containing one or more '.jack' files.")
 	flag.Parse()
 
 	info, err := os.Stat(source)
@@ -30,14 +31,29 @@ func main() {
 	lexer := lexer.NewLexer()
 	parser := parser.NewParser()
 
+	filePaths := []string{}
+
 	if info.IsDir() {
-		fmt.Println("It's plenty oh ah!!!")
+		entries, err := os.ReadDir(source)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, entry := range entries {
+			if fileName := entry.Name(); strings.HasSuffix(fileName, ".jack") {
+				filePaths = append(filePaths, filepath.Join(source, fileName))
+			}
+		}
 	} else {
 		if !strings.HasSuffix(source, ".jack") {
 			printHelpMessage()
 		}
+		filePaths = append(filePaths, source)
+	}
 
-		tokens := lexer.Tokenize(source)
+	for _, src := range filePaths {
+		tokens := lexer.Tokenize(src)
 		class := parser.Parse(tokens)
 		fmt.Printf("ClassName: %s\nVar Count: %d\nSubroutine Count: %d\n", class.Name, len(class.Vars), len(class.Subroutines))
 	}
