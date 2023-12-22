@@ -335,7 +335,7 @@ func (parser *Parser) parseUnaryExpression() types.UnaryExpr {
 	// GRAMMAR: ('-' | '~') term
 	opToken := parser.getNextToken()
 	parser.assertToken(opToken, []string{"-", "~"})
-	operator, _ := types.GetUnaryOperator(opToken.Lexeme)
+	operator := types.UnaryOperator(opToken.Lexeme)
 
 	return types.UnaryExpr{
 		Operator: operator,
@@ -350,7 +350,7 @@ func (parser *Parser) parseExpression() types.Expr {
 
 	if helpers.IsBinaryOperator(nexToken) {
 		parser.assertToken(parser.getNextToken(), []string{"+", "-", "*", "/", "<", ">", "="})
-		operator, _ := types.GetBinaryOperator(nexToken.Lexeme)
+		operator := types.BinaryOperator(nexToken.Lexeme)
 
 		return types.BinaryExpr{
 			Left:     term,
@@ -361,7 +361,7 @@ func (parser *Parser) parseExpression() types.Expr {
 
 	if helpers.IsLogicalOperator(nexToken) {
 		parser.assertToken(parser.getNextToken(), []string{"&", "|"})
-		operator, _ := types.GetLogicalOperator(nexToken.Lexeme)
+		operator := types.LogicalOperator(nexToken.Lexeme)
 		return types.LogicalExpr{
 			Left:     term,
 			Operator: operator,
@@ -516,7 +516,7 @@ func (parser *Parser) parseSubroutineDec() (subroutine types.SubroutineDecl) {
 	parser.assertToken(subroutineTypeToken, []string{"boolean", "char", "className", "int", "void"})
 	parser.assertToken(subroutineNameToken, []string{"subroutineName"})
 
-	subroutineKind, _ := types.GetSymbolKindFromString(subroutineKindToken.Lexeme)
+	subroutineKind := types.SymbolKind(subroutineKindToken.Lexeme)
 
 	subroutine.Name = types.Ident{Name: subroutineNameToken.Lexeme}
 	subroutine.Kind = subroutineKind
@@ -540,7 +540,7 @@ func (parser *Parser) parseClassVarDec() (vars []types.VarDecl) {
 	parser.assertToken(varTypeToken, []string{"boolean", "char", "className", "int"})
 	parser.assertToken(varNameToken, []string{"varName"})
 
-	varKind, _ := types.GetSymbolKindFromString(varKindToken.Lexeme)
+	varKind := types.SymbolKind(varKindToken.Lexeme)
 	vars = append(vars, types.VarDecl{Name: varNameToken.Lexeme, Type: varTypeToken.Lexeme, Kind: varKind})
 
 	// Check if it's a multi var declaration.

@@ -8,7 +8,7 @@
         { "Name": "Ay", "Type": "int" },
         { "Name": "Asize", "Type": "int" }
       ],
-      "Kind": 1,
+      "Kind": "constructor",
       "Type": "Square",
       "Body": {
         "Statements": [
@@ -16,7 +16,7 @@
           { "Target": { "Name": "y" }, "Value": { "Name": "Ay" } },
           { "Target": { "Name": "size" }, "Value": { "Name": "Asize" } },
           { "Expression": { "Arguments": null, "Callee": { "Name": "draw" } } },
-          { "Expression": { "Type": 4, "Value": "this" } }
+          { "Expression": { "Type": "this", "Value": "this" } }
         ],
         "Vars": null
       }
@@ -24,13 +24,13 @@
     {
       "Name": { "Name": "dispose" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Expression": {
-              "Arguments": [{ "Type": 4, "Value": "this" }],
+              "Arguments": [{ "Type": "this", "Value": "this" }],
               "Callee": {
                 "Object": { "Name": "Memory" },
                 "Property": { "Name": "deAlloc" }
@@ -45,13 +45,13 @@
     {
       "Name": { "Name": "draw" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Expression": {
-              "Arguments": [{ "Type": 0, "Value": "true" }],
+              "Arguments": [{ "Type": "boolean", "Value": "true" }],
               "Callee": {
                 "Object": { "Name": "Screen" },
                 "Property": { "Name": "setColor" }
@@ -64,12 +64,12 @@
                 { "Name": "x" },
                 { "Name": "y" },
                 {
-                  "Operator": 0,
+                  "Operator": "+",
                   "Left": { "Name": "x" },
                   "Right": { "Name": "size" }
                 },
                 {
-                  "Operator": 0,
+                  "Operator": "+",
                   "Left": { "Name": "y" },
                   "Right": { "Name": "size" }
                 }
@@ -88,13 +88,13 @@
     {
       "Name": { "Name": "erase" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Expression": {
-              "Arguments": [{ "Type": 0, "Value": "false" }],
+              "Arguments": [{ "Type": "boolean", "Value": "false" }],
               "Callee": {
                 "Object": { "Name": "Screen" },
                 "Property": { "Name": "setColor" }
@@ -107,12 +107,12 @@
                 { "Name": "x" },
                 { "Name": "y" },
                 {
-                  "Operator": 0,
+                  "Operator": "+",
                   "Left": { "Name": "x" },
                   "Right": { "Name": "size" }
                 },
                 {
-                  "Operator": 0,
+                  "Operator": "+",
                   "Left": { "Name": "y" },
                   "Right": { "Name": "size" }
                 }
@@ -131,37 +131,37 @@
     {
       "Name": { "Name": "incSize" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 0,
+              "Operator": "\u0026",
               "Left": {
                 "Expression": {
-                  "Operator": 4,
+                  "Operator": "\u003c",
                   "Left": {
                     "Expression": {
-                      "Operator": 0,
+                      "Operator": "+",
                       "Left": { "Name": "y" },
                       "Right": { "Name": "size" }
                     }
                   },
-                  "Right": { "Type": 1, "Value": "254" }
+                  "Right": { "Type": "int", "Value": "254" }
                 }
               },
               "Right": {
                 "Expression": {
-                  "Operator": 4,
+                  "Operator": "\u003c",
                   "Left": {
                     "Expression": {
-                      "Operator": 0,
+                      "Operator": "+",
                       "Left": { "Name": "x" },
                       "Right": { "Name": "size" }
                     }
                   },
-                  "Right": { "Type": 1, "Value": "510" }
+                  "Right": { "Type": "int", "Value": "510" }
                 }
               }
             },
@@ -176,9 +176,9 @@
                 {
                   "Target": { "Name": "size" },
                   "Value": {
-                    "Operator": 0,
+                    "Operator": "+",
                     "Left": { "Name": "size" },
-                    "Right": { "Type": 1, "Value": "2" }
+                    "Right": { "Type": "int", "Value": "2" }
                   }
                 },
                 {
@@ -199,15 +199,15 @@
     {
       "Name": { "Name": "decSize" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 5,
+              "Operator": "\u003e",
               "Left": { "Name": "size" },
-              "Right": { "Type": 1, "Value": "2" }
+              "Right": { "Type": "int", "Value": "2" }
             },
             "ThenStmt": {
               "Statements": [
@@ -220,9 +220,9 @@
                 {
                   "Target": { "Name": "size" },
                   "Value": {
-                    "Operator": 1,
+                    "Operator": "-",
                     "Left": { "Name": "size" },
-                    "Right": { "Type": 1, "Value": "2" }
+                    "Right": { "Type": "int", "Value": "2" }
                   }
                 },
                 {
@@ -243,21 +243,21 @@
     {
       "Name": { "Name": "moveUp" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 5,
+              "Operator": "\u003e",
               "Left": { "Name": "y" },
-              "Right": { "Type": 1, "Value": "1" }
+              "Right": { "Type": "int", "Value": "1" }
             },
             "ThenStmt": {
               "Statements": [
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "false" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -269,23 +269,23 @@
                     "Arguments": [
                       { "Name": "x" },
                       {
-                        "Operator": 1,
+                        "Operator": "-",
                         "Left": {
                           "Expression": {
-                            "Operator": 0,
+                            "Operator": "+",
                             "Left": { "Name": "y" },
                             "Right": { "Name": "size" }
                           }
                         },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
                         "Right": { "Name": "size" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
                         "Right": { "Name": "size" }
                       }
@@ -299,14 +299,14 @@
                 {
                   "Target": { "Name": "y" },
                   "Value": {
-                    "Operator": 1,
+                    "Operator": "-",
                     "Left": { "Name": "y" },
-                    "Right": { "Type": 1, "Value": "2" }
+                    "Right": { "Type": "int", "Value": "2" }
                   }
                 },
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "true" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -319,14 +319,14 @@
                       { "Name": "x" },
                       { "Name": "y" },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
                         "Right": { "Name": "size" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       }
                     ],
                     "Callee": {
@@ -347,27 +347,27 @@
     {
       "Name": { "Name": "moveDown" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 4,
+              "Operator": "\u003c",
               "Left": {
                 "Expression": {
-                  "Operator": 0,
+                  "Operator": "+",
                   "Left": { "Name": "y" },
                   "Right": { "Name": "size" }
                 }
               },
-              "Right": { "Type": 1, "Value": "254" }
+              "Right": { "Type": "int", "Value": "254" }
             },
             "ThenStmt": {
               "Statements": [
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "false" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -380,14 +380,14 @@
                       { "Name": "x" },
                       { "Name": "y" },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
                         "Right": { "Name": "size" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       }
                     ],
                     "Callee": {
@@ -399,14 +399,14 @@
                 {
                   "Target": { "Name": "y" },
                   "Value": {
-                    "Operator": 0,
+                    "Operator": "+",
                     "Left": { "Name": "y" },
-                    "Right": { "Type": 1, "Value": "2" }
+                    "Right": { "Type": "int", "Value": "2" }
                   }
                 },
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "true" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -418,23 +418,23 @@
                     "Arguments": [
                       { "Name": "x" },
                       {
-                        "Operator": 1,
+                        "Operator": "-",
                         "Left": {
                           "Expression": {
-                            "Operator": 0,
+                            "Operator": "+",
                             "Left": { "Name": "y" },
                             "Right": { "Name": "size" }
                           }
                         },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
                         "Right": { "Name": "size" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
                         "Right": { "Name": "size" }
                       }
@@ -457,21 +457,21 @@
     {
       "Name": { "Name": "moveLeft" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 5,
+              "Operator": "\u003e",
               "Left": { "Name": "x" },
-              "Right": { "Type": 1, "Value": "1" }
+              "Right": { "Type": "int", "Value": "1" }
             },
             "ThenStmt": {
               "Statements": [
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "false" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -482,24 +482,24 @@
                   "Expression": {
                     "Arguments": [
                       {
-                        "Operator": 1,
+                        "Operator": "-",
                         "Left": {
                           "Expression": {
-                            "Operator": 0,
+                            "Operator": "+",
                             "Left": { "Name": "x" },
                             "Right": { "Name": "size" }
                           }
                         },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       },
                       { "Name": "y" },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
                         "Right": { "Name": "size" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
                         "Right": { "Name": "size" }
                       }
@@ -513,14 +513,14 @@
                 {
                   "Target": { "Name": "x" },
                   "Value": {
-                    "Operator": 1,
+                    "Operator": "-",
                     "Left": { "Name": "x" },
-                    "Right": { "Type": 1, "Value": "2" }
+                    "Right": { "Type": "int", "Value": "2" }
                   }
                 },
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "true" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -533,12 +533,12 @@
                       { "Name": "x" },
                       { "Name": "y" },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
                         "Right": { "Name": "size" }
                       }
@@ -561,27 +561,27 @@
     {
       "Name": { "Name": "moveRight" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 4,
+              "Operator": "\u003c",
               "Left": {
                 "Expression": {
-                  "Operator": 0,
+                  "Operator": "+",
                   "Left": { "Name": "x" },
                   "Right": { "Name": "size" }
                 }
               },
-              "Right": { "Type": 1, "Value": "510" }
+              "Right": { "Type": "int", "Value": "510" }
             },
             "ThenStmt": {
               "Statements": [
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "false" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "false" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -594,12 +594,12 @@
                       { "Name": "x" },
                       { "Name": "y" },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
                         "Right": { "Name": "size" }
                       }
@@ -613,14 +613,14 @@
                 {
                   "Target": { "Name": "x" },
                   "Value": {
-                    "Operator": 0,
+                    "Operator": "+",
                     "Left": { "Name": "x" },
-                    "Right": { "Type": 1, "Value": "2" }
+                    "Right": { "Type": "int", "Value": "2" }
                   }
                 },
                 {
                   "Expression": {
-                    "Arguments": [{ "Type": 0, "Value": "true" }],
+                    "Arguments": [{ "Type": "boolean", "Value": "true" }],
                     "Callee": {
                       "Object": { "Name": "Screen" },
                       "Property": { "Name": "setColor" }
@@ -631,24 +631,24 @@
                   "Expression": {
                     "Arguments": [
                       {
-                        "Operator": 1,
+                        "Operator": "-",
                         "Left": {
                           "Expression": {
-                            "Operator": 0,
+                            "Operator": "+",
                             "Left": { "Name": "x" },
                             "Right": { "Name": "size" }
                           }
                         },
-                        "Right": { "Type": 1, "Value": "1" }
+                        "Right": { "Type": "int", "Value": "1" }
                       },
                       { "Name": "y" },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "x" },
                         "Right": { "Name": "size" }
                       },
                       {
-                        "Operator": 0,
+                        "Operator": "+",
                         "Left": { "Name": "y" },
                         "Right": { "Name": "size" }
                       }
@@ -670,8 +670,8 @@
     }
   ],
   "Vars": [
-    { "Name": "x", "Kind": 2, "Type": "int" },
-    { "Name": "y", "Kind": 2, "Type": "int" },
-    { "Name": "size", "Kind": 2, "Type": "int" }
+    { "Name": "x", "Kind": "field", "Type": "int" },
+    { "Name": "y", "Kind": "field", "Type": "int" },
+    { "Name": "size", "Kind": "field", "Type": "int" }
   ]
 }

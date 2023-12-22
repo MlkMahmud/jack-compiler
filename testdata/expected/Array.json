@@ -4,14 +4,16 @@
     {
       "Name": { "Name": "main" },
       "Params": null,
-      "Kind": 3,
+      "Kind": "function",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Target": { "Name": "length" },
             "Value": {
-              "Arguments": [{ "Type": 3, "Value": "HOW MANY NUMBERS? " }],
+              "Arguments": [
+                { "Type": "string", "Value": "HOW MANY NUMBERS? " }
+              ],
               "Callee": {
                 "Object": { "Name": "Keyboard" },
                 "Property": { "Name": "readInt" }
@@ -28,7 +30,10 @@
               }
             }
           },
-          { "Target": { "Name": "i" }, "Value": { "Type": 1, "Value": "0" } },
+          {
+            "Target": { "Name": "i" },
+            "Value": { "Type": "int", "Value": "0" }
+          },
           {
             "Body": {
               "Statements": [
@@ -39,7 +44,7 @@
                   },
                   "Value": {
                     "Arguments": [
-                      { "Type": 3, "Value": "ENTER THE NEXT NUMBER: " }
+                      { "Type": "string", "Value": "ENTER THE NEXT NUMBER: " }
                     ],
                     "Callee": {
                       "Object": { "Name": "Keyboard" },
@@ -50,28 +55,34 @@
                 {
                   "Target": { "Name": "i" },
                   "Value": {
-                    "Operator": 0,
+                    "Operator": "+",
                     "Left": { "Name": "i" },
-                    "Right": { "Type": 1, "Value": "1" }
+                    "Right": { "Type": "int", "Value": "1" }
                   }
                 }
               ]
             },
             "Condition": {
-              "Operator": 4,
+              "Operator": "\u003c",
               "Left": { "Name": "i" },
               "Right": { "Name": "length" }
             }
           },
-          { "Target": { "Name": "i" }, "Value": { "Type": 1, "Value": "0" } },
-          { "Target": { "Name": "sum" }, "Value": { "Type": 1, "Value": "0" } },
+          {
+            "Target": { "Name": "i" },
+            "Value": { "Type": "int", "Value": "0" }
+          },
+          {
+            "Target": { "Name": "sum" },
+            "Value": { "Type": "int", "Value": "0" }
+          },
           {
             "Body": {
               "Statements": [
                 {
                   "Target": { "Name": "sum" },
                   "Value": {
-                    "Operator": 0,
+                    "Operator": "+",
                     "Left": { "Name": "sum" },
                     "Right": {
                       "Indexer": { "Name": "i" },
@@ -82,22 +93,22 @@
                 {
                   "Target": { "Name": "i" },
                   "Value": {
-                    "Operator": 0,
+                    "Operator": "+",
                     "Left": { "Name": "i" },
-                    "Right": { "Type": 1, "Value": "1" }
+                    "Right": { "Type": "int", "Value": "1" }
                   }
                 }
               ]
             },
             "Condition": {
-              "Operator": 4,
+              "Operator": "\u003c",
               "Left": { "Name": "i" },
               "Right": { "Name": "length" }
             }
           },
           {
             "Expression": {
-              "Arguments": [{ "Type": 3, "Value": "THE AVERAGE IS: " }],
+              "Arguments": [{ "Type": "string", "Value": "THE AVERAGE IS: " }],
               "Callee": {
                 "Object": { "Name": "Output" },
                 "Property": { "Name": "printString" }
@@ -108,7 +119,7 @@
             "Expression": {
               "Arguments": [
                 {
-                  "Operator": 3,
+                  "Operator": "/",
                   "Left": { "Name": "sum" },
                   "Right": { "Name": "length" }
                 }
@@ -131,10 +142,10 @@
           { "Expression": null }
         ],
         "Vars": [
-          { "Name": "a", "Kind": 6, "Type": "Array" },
-          { "Name": "length", "Kind": 6, "Type": "int" },
-          { "Name": "i", "Kind": 6, "Type": "int" },
-          { "Name": "sum", "Kind": 6, "Type": "int" }
+          { "Name": "a", "Kind": "var", "Type": "Array" },
+          { "Name": "length", "Kind": "var", "Type": "int" },
+          { "Name": "i", "Kind": "var", "Type": "int" },
+          { "Name": "sum", "Kind": "var", "Type": "int" }
         ]
       }
     }

@@ -4,7 +4,7 @@
     {
       "Name": { "Name": "new" },
       "Params": null,
-      "Kind": 1,
+      "Kind": "constructor",
       "Type": "SquareGame",
       "Body": {
         "Statements": [
@@ -12,9 +12,9 @@
             "Target": { "Name": "square" },
             "Value": {
               "Arguments": [
-                { "Type": 1, "Value": "0" },
-                { "Type": 1, "Value": "0" },
-                { "Type": 1, "Value": "30" }
+                { "Type": "int", "Value": "0" },
+                { "Type": "int", "Value": "0" },
+                { "Type": "int", "Value": "30" }
               ],
               "Callee": {
                 "Object": { "Name": "Square" },
@@ -24,9 +24,9 @@
           },
           {
             "Target": { "Name": "direction" },
-            "Value": { "Type": 1, "Value": "0" }
+            "Value": { "Type": "int", "Value": "0" }
           },
-          { "Expression": { "Type": 4, "Value": "this" } }
+          { "Expression": { "Type": "this", "Value": "this" } }
         ],
         "Vars": null
       }
@@ -34,7 +34,7 @@
     {
       "Name": { "Name": "dispose" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
@@ -49,7 +49,7 @@
           },
           {
             "Expression": {
-              "Arguments": [{ "Type": 4, "Value": "this" }],
+              "Arguments": [{ "Type": "this", "Value": "this" }],
               "Callee": {
                 "Object": { "Name": "Memory" },
                 "Property": { "Name": "deAlloc" }
@@ -64,15 +64,15 @@
     {
       "Name": { "Name": "moveSquare" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Condition": {
-              "Operator": 6,
+              "Operator": "=",
               "Left": { "Name": "direction" },
-              "Right": { "Type": 1, "Value": "1" }
+              "Right": { "Type": "int", "Value": "1" }
             },
             "ThenStmt": {
               "Statements": [
@@ -91,9 +91,9 @@
           },
           {
             "Condition": {
-              "Operator": 6,
+              "Operator": "=",
               "Left": { "Name": "direction" },
-              "Right": { "Type": 1, "Value": "2" }
+              "Right": { "Type": "int", "Value": "2" }
             },
             "ThenStmt": {
               "Statements": [
@@ -112,9 +112,9 @@
           },
           {
             "Condition": {
-              "Operator": 6,
+              "Operator": "=",
               "Left": { "Name": "direction" },
-              "Right": { "Type": 1, "Value": "3" }
+              "Right": { "Type": "int", "Value": "3" }
             },
             "ThenStmt": {
               "Statements": [
@@ -133,9 +133,9 @@
           },
           {
             "Condition": {
-              "Operator": 6,
+              "Operator": "=",
               "Left": { "Name": "direction" },
-              "Right": { "Type": 1, "Value": "4" }
+              "Right": { "Type": "int", "Value": "4" }
             },
             "ThenStmt": {
               "Statements": [
@@ -154,7 +154,7 @@
           },
           {
             "Expression": {
-              "Arguments": [{ "Type": 1, "Value": "5" }],
+              "Arguments": [{ "Type": "int", "Value": "5" }],
               "Callee": {
                 "Object": { "Name": "Sys" },
                 "Property": { "Name": "wait" }
@@ -169,13 +169,13 @@
     {
       "Name": { "Name": "run" },
       "Params": null,
-      "Kind": 4,
+      "Kind": "method",
       "Type": "void",
       "Body": {
         "Statements": [
           {
             "Target": { "Name": "exit" },
-            "Value": { "Type": 0, "Value": "false" }
+            "Value": { "Type": "boolean", "Value": "false" }
           },
           {
             "Body": {
@@ -202,22 +202,22 @@
                     ]
                   },
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "0" }
+                    "Right": { "Type": "int", "Value": "0" }
                   }
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "81" }
+                    "Right": { "Type": "int", "Value": "81" }
                   },
                   "ThenStmt": {
                     "Statements": [
                       {
                         "Target": { "Name": "exit" },
-                        "Value": { "Type": 0, "Value": "true" }
+                        "Value": { "Type": "boolean", "Value": "true" }
                       }
                     ]
                   },
@@ -225,9 +225,9 @@
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "90" }
+                    "Right": { "Type": "int", "Value": "90" }
                   },
                   "ThenStmt": {
                     "Statements": [
@@ -246,9 +246,9 @@
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "88" }
+                    "Right": { "Type": "int", "Value": "88" }
                   },
                   "ThenStmt": {
                     "Statements": [
@@ -267,15 +267,15 @@
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "131" }
+                    "Right": { "Type": "int", "Value": "131" }
                   },
                   "ThenStmt": {
                     "Statements": [
                       {
                         "Target": { "Name": "direction" },
-                        "Value": { "Type": 1, "Value": "1" }
+                        "Value": { "Type": "int", "Value": "1" }
                       }
                     ]
                   },
@@ -283,15 +283,15 @@
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "133" }
+                    "Right": { "Type": "int", "Value": "133" }
                   },
                   "ThenStmt": {
                     "Statements": [
                       {
                         "Target": { "Name": "direction" },
-                        "Value": { "Type": 1, "Value": "2" }
+                        "Value": { "Type": "int", "Value": "2" }
                       }
                     ]
                   },
@@ -299,15 +299,15 @@
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "130" }
+                    "Right": { "Type": "int", "Value": "130" }
                   },
                   "ThenStmt": {
                     "Statements": [
                       {
                         "Target": { "Name": "direction" },
-                        "Value": { "Type": 1, "Value": "3" }
+                        "Value": { "Type": "int", "Value": "3" }
                       }
                     ]
                   },
@@ -315,15 +315,15 @@
                 },
                 {
                   "Condition": {
-                    "Operator": 6,
+                    "Operator": "=",
                     "Left": { "Name": "key" },
-                    "Right": { "Type": 1, "Value": "132" }
+                    "Right": { "Type": "int", "Value": "132" }
                   },
                   "ThenStmt": {
                     "Statements": [
                       {
                         "Target": { "Name": "direction" },
-                        "Value": { "Type": 1, "Value": "4" }
+                        "Value": { "Type": "int", "Value": "4" }
                       }
                     ]
                   },
@@ -351,31 +351,31 @@
                     ]
                   },
                   "Condition": {
-                    "Operator": 1,
+                    "Operator": "~",
                     "Operand": {
                       "Expression": {
-                        "Operator": 6,
+                        "Operator": "=",
                         "Left": { "Name": "key" },
-                        "Right": { "Type": 1, "Value": "0" }
+                        "Right": { "Type": "int", "Value": "0" }
                       }
                     }
                   }
                 }
               ]
             },
-            "Condition": { "Operator": 1, "Operand": { "Name": "exit" } }
+            "Condition": { "Operator": "~", "Operand": { "Name": "exit" } }
           },
           { "Expression": null }
         ],
         "Vars": [
-          { "Name": "key", "Kind": 6, "Type": "char" },
-          { "Name": "exit", "Kind": 6, "Type": "boolean" }
+          { "Name": "key", "Kind": "var", "Type": "char" },
+          { "Name": "exit", "Kind": "var", "Type": "boolean" }
         ]
       }
     }
   ],
   "Vars": [
-    { "Name": "square", "Kind": 2, "Type": "Square" },
-    { "Name": "direction", "Kind": 2, "Type": "int" }
+    { "Name": "square", "Kind": "field", "Type": "Square" },
+    { "Name": "direction", "Kind": "field", "Type": "int" }
   ]
 }

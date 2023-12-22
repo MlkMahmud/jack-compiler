@@ -1,132 +1,52 @@
 package types
 
-
-type SymbolKind int
-
-const (
-	Argument SymbolKind = iota
-	Constructor
-	Field
-	Function
-	Method
-	Static
-	Var
-)
-
-func (s SymbolKind) String() string {
-	return []string{"argument", "constructor", "field", "function", "method", "static", "var"}[s]
-}
-
-var symbolKindMap = map[string]SymbolKind{
-	"argument": Argument,
-	"constructor": Constructor,
-	"field": Field,
-	"function": Function,
-	"method": Method,
-	"static": Static,
-	"var": Var,
-}
-
-func GetSymbolKindFromString(str string) (SymbolKind, bool) {
-	symbolKind, found := symbolKindMap[str]
-	return symbolKind, found
-}
-
-type BinaryOperator int
+type SymbolKind string
 
 const (
-	Addition BinaryOperator = iota
-	Subraction
-	Multiplication
-	Division
-	LessThan
-	GreaterThan
-	Equals
+	Argument    SymbolKind = "argument"
+	Constructor SymbolKind = "constructor"
+	Field       SymbolKind = "field"
+	Function    SymbolKind = "function"
+	Method      SymbolKind = "method"
+	Static      SymbolKind = "static"
+	Var         SymbolKind = "var"
 )
 
-func (op BinaryOperator) String() string {
-	return []string{"+", "-", "*", "/", "<", ">", "="}[op]
-}
-
-var binaryOperatorMap = map[string]BinaryOperator{
-	"+": Addition,
-	"-": Subraction,
-	"*": Multiplication,
-	"/": Division,
-	"<": LessThan,
-	">": GreaterThan,
-	"=": Equals,
-}
-
-func GetBinaryOperator(str string) (BinaryOperator, bool) {
-	op, found := binaryOperatorMap[str]
-	return op, found
-}
-
-type LogicalOperator int
+type BinaryOperator string
 
 const (
-	And LogicalOperator = iota
-	Or
+	Addition       BinaryOperator = "+"
+	Subraction     BinaryOperator = "-"
+	Multiplication BinaryOperator = "*"
+	Division       BinaryOperator = "/"
+	LessThan       BinaryOperator = "<"
+	GreaterThan    BinaryOperator = ">"
+	Equals         BinaryOperator = "="
 )
 
-func (op LogicalOperator) String() string {
-	return []string{"&", "|"}[op]
-}
-
-var logicalOperatorMap = map[string]LogicalOperator{
-	"&": And,
-	"|": Or,
-}
-
-func GetLogicalOperator(str string) (LogicalOperator, bool) {
-	op, found := logicalOperatorMap[str]
-	return op, found
-}
-
-type UnaryOperator int
+type LogicalOperator string
 
 const (
-	ArithmeticNegation UnaryOperator = iota
-	BooleanNegation
+	And LogicalOperator = "&"
+	Or  LogicalOperator = "|"
 )
 
-func (op UnaryOperator) String() string {
-	return []string{"-", "~"}[op]
-}
-
-var unaryOperatorMap = map[string]UnaryOperator{
-	"-": ArithmeticNegation,
-	"~": BooleanNegation,
-}
-
-func GetUnaryOperator(str string) (UnaryOperator, bool) {
-	op, found := unaryOperatorMap[str]
-	return op, found
-}
-
-type LiteralType int
+type UnaryOperator string
 
 const (
-	BooleanLiteral LiteralType = iota
-	IntegerLiteral
-	NullLiteral
-	StringLiteral
-	ThisLiteral
+	ArithmeticNegation UnaryOperator = "-"
+	BooleanNegation    UnaryOperator = "~"
 )
 
-var literalTypesMap = map[string]LiteralType{
-	"true": BooleanLiteral,
-	"false": BooleanLiteral,
-	"null": NullLiteral,
-	"string": StringLiteral,
-	"this": ThisLiteral,
-}
+type LiteralType string
 
-func GetLiteralType(str string) (LiteralType, bool) {
-	literal, ok := literalTypesMap[str]
-	return literal, ok 
-}
+const (
+	BooleanLiteral LiteralType = "boolean"
+	IntegerLiteral LiteralType = "int"
+	NullLiteral    LiteralType = "null"
+	StringLiteral  LiteralType = "string"
+	ThisLiteral    LiteralType = "this"
+)
 
 var KEYWORDS = map[string]bool{
 	"class": true, "constructor": true, "method": true,

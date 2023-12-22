@@ -31,7 +31,7 @@ func main() {
 	lexer := lexer.NewLexer()
 	parser := parser.NewParser()
 
-	filePaths := []string{}
+	jackFiles := []string{}
 
 	if info.IsDir() {
 		entries, err := os.ReadDir(source)
@@ -42,17 +42,17 @@ func main() {
 
 		for _, entry := range entries {
 			if fileName := entry.Name(); strings.HasSuffix(fileName, ".jack") {
-				filePaths = append(filePaths, filepath.Join(source, fileName))
+				jackFiles = append(jackFiles, filepath.Join(source, fileName))
 			}
 		}
 	} else {
 		if !strings.HasSuffix(source, ".jack") {
 			printHelpMessage()
 		}
-		filePaths = append(filePaths, source)
+		jackFiles = append(jackFiles, source)
 	}
 
-	for _, src := range filePaths {
+	for _, src := range jackFiles {
 		tokens := lexer.Tokenize(src)
 		class := parser.Parse(tokens)
 		fmt.Printf("ClassName: %s\nVar Count: %d\nSubroutine Count: %d\n", class.Name, len(class.Vars), len(class.Subroutines))
